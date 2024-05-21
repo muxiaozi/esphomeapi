@@ -1,0 +1,21 @@
+[package]
+name = "esphomeapi-rs"
+version = "0.1.0"
+authors = ["Patrik Kovalovszky <kovapatrik@gmail.com>"]
+description = "The Snow library compiled to WebAssembly"
+edition = "2021"
+
+
+[dependencies]
+base64 = "0.22.1"
+prost = "0.12.6"
+tokio = { version = "1.37.0", features = ["net", "sync", "io-util", "rt-multi-thread", "macros"] }
+tokio-util = { version = "0.7.11", features = ["codec"] }
+bytes = "1.6.0"
+varuint = "0.7.1"
+tokio-stream = "0.1.15"
+noise-protocol = "0.2.0"
+noise-rust-crypto = "0.6.2"
+
+[build-dependencies]
+prost-build = "0.12.6"
