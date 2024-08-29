@@ -6,12 +6,12 @@ use noise_protocol::{patterns::noise_nn_psk0, CipherState, HandshakeState};
 use noise_rust_crypto::{ChaCha20Poly1305, Sha256, X25519};
 use tokio_util::codec::{Decoder, Encoder};
 
-use super::{FrameCodec, Message};
+use super::{FrameCodec, Message, MessageType};
 
 static PROLOGUE: &'static [u8] = b"NoiseAPIInit\x00\x00";
 static HELLO: &'static [u8] = &[0x01, 0x00, 0x00];
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 enum NoiseState {
   Hello,
   Handshake,
@@ -19,13 +19,13 @@ enum NoiseState {
   Closed,
 }
 
+#[derive(Clone)]
 pub struct Noise {
   state: NoiseState,
   expected_server_name: Option<String>,
   initiator: Option<HandshakeState<X25519, ChaCha20Poly1305, Sha256>>,
   decoder: Option<CipherState<ChaCha20Poly1305>>,
   encoder: Option<CipherState<ChaCha20Poly1305>>,
-  buffer: BytesMut,
 }
 
 impl Noise {
@@ -41,7 +41,6 @@ impl Noise {
       initiator: Some(initiator),
       decoder: None,
       encoder: None,
-      buffer: BytesMut::with_capacity(1024),
     }
   }
 }
@@ -78,6 +77,10 @@ impl FrameCodec for Noise {
     }
 
     Ok((msg_size_high, msg_size_low))
+  }
+
+  fn close(&mut self) {
+    self.state = NoiseState::Closed;
   }
 }
 
@@ -134,7 +137,12 @@ impl Decoder for Noise {
           self.encoder = Some(encoder);
           self.decoder = Some(decoder);
           self.state = NoiseState::Ready;
-          println!("Noise handshake completed")
+          return Ok(Some(Message {
+            message_type: MessageType::Response,
+            protobuf_type: 0,
+            protobuf_data: "Handshake completed".as_bytes().to_vec(),
+            response_type: None,
+          }));
         } else {
           self.initiator = Some(handshake_state);
         }
@@ -149,16 +157,17 @@ impl Decoder for Noise {
         // 2 bytes: message type
         // 2 bytes: message length
         // N bytes: message data
-        let msg_type_high = buffer[0];
-        let msg_type_low = buffer[1];
+        let msg_type_high = buffer[0] as u32;
+        let msg_type_low = buffer[1] as u32;
 
         return Ok(Some(Message {
-          protobuf_type: (msg_type_high).checked_shr(8).unwrap_or(0) | msg_type_low,
+          message_type: MessageType::Response,
+          protobuf_type: (msg_type_high).checked_shr(8).unwrap_or(0) | msg_type_low ,
           protobuf_data: buffer[4..].to_vec(),
+          response_type: None,
         }));
       },
       NoiseState::Closed => return Err(Error::new(std::io::ErrorKind::InvalidData, "Connection closed")),
-      _ => {}
     }
 
     Ok(None)
@@ -174,13 +183,14 @@ impl Encoder<Message> for Noise {
       return Err(Error::new(std::io::ErrorKind::InvalidData, "Encoder not initialized"));
     }
 
-    let mut frame = BytesMut::with_capacity(1024);
     let mut buffer = BytesMut::new();
 
     let data_len = item.protobuf_data.len() as u8;
     let data_header = [(item.protobuf_type.checked_shr(8).unwrap_or(0)) as u8, item.protobuf_type as u8, (data_len.checked_shr(8).unwrap_or(0)) as u8, data_len as u8].to_vec();
     buffer.extend_from_slice(&data_header);
     buffer.extend_from_slice(&item.protobuf_data);
+
+    let mut frame = BytesMut::zeroed(data_header.len() + item.protobuf_data.len() + 16);
 
     self.encoder.as_mut().unwrap().encrypt(&buffer, &mut frame);
     let len = frame.len();

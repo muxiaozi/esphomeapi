@@ -1,5 +1,5 @@
 syntax = "proto2";
-package proto;
+package protos;
 import "google/protobuf/descriptor.proto";
 
 

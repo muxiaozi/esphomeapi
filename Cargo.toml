@@ -16,6 +16,9 @@ varuint = "0.7.1"
 tokio-stream = "0.1.15"
 noise-protocol = "0.2.0"
 noise-rust-crypto = "0.6.2"
+protobuf = "3.4.0"
+futures = "0.3.30"
 
 [build-dependencies]
 prost-build = "0.12.6"
+protobuf-codegen = "3.4.0"

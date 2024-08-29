@@ -2,17 +2,15 @@ use bytes::{BufMut, Bytes};
 use tokio_util::codec::{Decoder, Encoder};
 use varuint::*;
 
-use super::{FrameCodec, Message};
+use super::{FrameCodec, Message, MessageType};
 
+#[derive(Clone)]
 pub struct Plain {
-  buffer: Vec<u8>,
 }
 
 impl Plain {
   pub fn new() -> Self {
-    Plain {
-      buffer: Vec::new(),
-    }
+    Plain {}
   } 
 }
 
@@ -35,6 +33,8 @@ impl FrameCodec for Plain {
   fn get_handshake_frame(&mut self) -> Option<Bytes> {
     None
   }
+
+  fn close(&mut self) {}
 }
 
 impl Decoder for Plain {
@@ -50,8 +50,10 @@ impl Decoder for Plain {
     let msg = src.split_to(length as usize);
 
     Ok(Some(Message {
-      protobuf_type: msg_type,
+      message_type: MessageType::Response,
+      protobuf_type: msg_type as u32,
       protobuf_data: msg.to_vec(),
+      response_type: None,
     }))
   }
 }
