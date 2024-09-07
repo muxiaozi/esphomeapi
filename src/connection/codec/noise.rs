@@ -6,7 +6,7 @@ use noise_protocol::{patterns::noise_nn_psk0, CipherState, HandshakeState};
 use noise_rust_crypto::{ChaCha20Poly1305, Sha256, X25519};
 use tokio_util::codec::{Decoder, Encoder};
 
-use super::{FrameCodec, Message, MessageType};
+use super::{FrameCodec, Message};
 
 static PROLOGUE: &'static [u8] = b"NoiseAPIInit\x00\x00";
 static HELLO: &'static [u8] = &[0x01, 0x00, 0x00];
@@ -137,12 +137,9 @@ impl Decoder for Noise {
           self.encoder = Some(encoder);
           self.decoder = Some(decoder);
           self.state = NoiseState::Ready;
-          return Ok(Some(Message {
-            message_type: MessageType::Response,
-            protobuf_type: 0,
-            protobuf_data: "Handshake completed".as_bytes().to_vec(),
-            response_type: None,
-          }));
+          return Ok(Some(
+            Message::new_response(0, "Handshake completed".as_bytes().to_vec())
+          ));
         } else {
           self.initiator = Some(handshake_state);
         }
@@ -160,12 +157,9 @@ impl Decoder for Noise {
         let msg_type_high = buffer[0] as u32;
         let msg_type_low = buffer[1] as u32;
 
-        return Ok(Some(Message {
-          message_type: MessageType::Response,
-          protobuf_type: (msg_type_high).checked_shr(8).unwrap_or(0) | msg_type_low ,
-          protobuf_data: buffer[4..].to_vec(),
-          response_type: None,
-        }));
+        return Ok(Some(
+          Message::new_response(msg_type_high.checked_shr(8).unwrap_or(0) | msg_type_low, buffer[4..].to_vec())
+        ));
       },
       NoiseState::Closed => return Err(Error::new(std::io::ErrorKind::InvalidData, "Connection closed")),
     }
@@ -185,12 +179,14 @@ impl Encoder<Message> for Noise {
 
     let mut buffer = BytesMut::new();
 
-    let data_len = item.protobuf_data.len() as u8;
-    let data_header = [(item.protobuf_type.checked_shr(8).unwrap_or(0)) as u8, item.protobuf_type as u8, (data_len.checked_shr(8).unwrap_or(0)) as u8, data_len as u8].to_vec();
-    buffer.extend_from_slice(&data_header);
-    buffer.extend_from_slice(&item.protobuf_data);
+    let message = item.get_protobuf_message();
 
-    let mut frame = BytesMut::zeroed(data_header.len() + item.protobuf_data.len() + 16);
+    let data_len = message.protobuf_data.len() as u8;
+    let data_header = [(message.protobuf_type.checked_shr(8).unwrap_or(0)) as u8, message.protobuf_type as u8, (data_len.checked_shr(8).unwrap_or(0)) as u8, data_len as u8].to_vec();
+    buffer.extend_from_slice(&data_header);
+    buffer.extend_from_slice(&message.protobuf_data);
+
+    let mut frame = BytesMut::zeroed(data_header.len() + message.protobuf_data.len() + 16);
 
     self.encoder.as_mut().unwrap().encrypt(&buffer, &mut frame);
     let len = frame.len();

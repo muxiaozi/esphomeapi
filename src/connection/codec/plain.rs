@@ -2,7 +2,7 @@ use bytes::{BufMut, Bytes};
 use tokio_util::codec::{Decoder, Encoder};
 use varuint::*;
 
-use super::{FrameCodec, Message, MessageType};
+use super::{FrameCodec, Message};
 
 #[derive(Clone)]
 pub struct Plain {
@@ -49,12 +49,9 @@ impl Decoder for Plain {
     let (length, msg_type) = self.parse_frame(src)?;
     let msg = src.split_to(length as usize);
 
-    Ok(Some(Message {
-      message_type: MessageType::Response,
-      protobuf_type: msg_type as u32,
-      protobuf_data: msg.to_vec(),
-      response_type: None,
-    }))
+    Ok(Some(
+      Message::new_response(msg_type as u32, msg.to_vec())
+    ))
   }
 }
 
@@ -62,10 +59,11 @@ impl Encoder<Message> for Plain {
   type Error = std::io::Error;
 
   fn encode(&mut self, item: Message, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
+    let message = item.get_protobuf_message();
     dst.put_u8(0);
-    dst.writer().write_varint(item.protobuf_data.len() as u64).unwrap();
-    dst.writer().write_varint(item.protobuf_type as u64).unwrap();
-    dst.extend_from_slice(&item.protobuf_data);
+    dst.writer().write_varint(message.protobuf_data.len() as u64).unwrap();
+    dst.writer().write_varint(message.protobuf_type as u64).unwrap();
+    dst.extend_from_slice(&message.protobuf_data);
     Ok(())
   }
 }

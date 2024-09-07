@@ -1,5 +1,6 @@
 mod proto {
   include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
+  // include!(concat!(env!("OUT_DIR"), "/protos.rs"));
 }
 
 mod connection;
