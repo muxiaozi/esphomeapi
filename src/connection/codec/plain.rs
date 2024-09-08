@@ -2,7 +2,7 @@ use bytes::{BufMut, Bytes};
 use tokio_util::codec::{Decoder, Encoder};
 use varuint::*;
 
-use super::{FrameCodec, Message};
+use super::{FrameCodec, EspHomeMessage};
 
 #[derive(Clone)]
 pub struct Plain {
@@ -38,7 +38,7 @@ impl FrameCodec for Plain {
 }
 
 impl Decoder for Plain {
-  type Item = Message;
+  type Item = EspHomeMessage;
   type Error = std::io::Error;
 
   fn decode(&mut self, src: &mut bytes::BytesMut) -> Result<Option<Self::Item>, Self::Error> {
@@ -50,15 +50,15 @@ impl Decoder for Plain {
     let msg = src.split_to(length as usize);
 
     Ok(Some(
-      Message::new_response(msg_type as u32, msg.to_vec())
+      EspHomeMessage::new_response(msg_type as u32, msg.to_vec())
     ))
   }
 }
 
-impl Encoder<Message> for Plain {
+impl Encoder<EspHomeMessage> for Plain {
   type Error = std::io::Error;
 
-  fn encode(&mut self, item: Message, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
+  fn encode(&mut self, item: EspHomeMessage, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
     let message = item.get_protobuf_message();
     dst.put_u8(0);
     dst.writer().write_varint(message.protobuf_data.len() as u64).unwrap();

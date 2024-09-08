@@ -9,8 +9,9 @@ pub use plain::Plain;
 use tokio::sync::oneshot;
 use tokio_util::codec::{Decoder, Encoder};
 
-pub type DynamicMessage = Box<dyn protobuf::MessageDyn>;
-pub type DynamicResponseMessage = (u32, DynamicMessage);
+use crate::Result as EspResult;
+
+pub type Callback = Box<dyn Fn(ProtobufMessage) -> EspResult<()> + Send + Sync + 'static>;
 
 #[derive(Debug, Clone)]
 // A common struct that holds shared fields between messages
@@ -19,7 +20,7 @@ pub struct ProtobufMessage {
     pub protobuf_data: Vec<u8>,
 }
 
-pub enum MessageType {
+pub enum EspHomeMessageType {
     Response {
         protobuf_message: ProtobufMessage,
     },
@@ -33,32 +34,32 @@ pub enum MessageType {
     RequestWithAwaitFn {
         protobuf_message: ProtobufMessage,
         response_protobuf_type: u32,
-        callback: Box<dyn FnOnce(ProtobufMessage) + Send + 'static>,
+        callback: Callback,
     },
 }
 
-impl std::fmt::Debug for MessageType {
+impl std::fmt::Debug for EspHomeMessageType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            MessageType::Response { protobuf_message } => {
+            EspHomeMessageType::Response { protobuf_message } => {
                 f.debug_struct("Response")
                     .field("protobuf_type", &protobuf_message.protobuf_type)
                     .field("protobuf_data", &protobuf_message.protobuf_data)
                     .finish()
             }
-            MessageType::Request { protobuf_message } => {
+            EspHomeMessageType::Request { protobuf_message } => {
                 f.debug_struct("Request")
                     .field("protobuf_type", &protobuf_message.protobuf_type)
                     .field("protobuf_data", &protobuf_message.protobuf_data)
                     .finish()
             }
-            MessageType::RequestWithAwait { protobuf_message, .. } => {
+            EspHomeMessageType::RequestWithAwait { protobuf_message, .. } => {
                 f.debug_struct("RequestWithAwait")
                     .field("protobuf_type", &protobuf_message.protobuf_type)
                     .field("protobuf_data", &protobuf_message.protobuf_data)
                     .finish()
             }
-            MessageType::RequestWithAwaitFn { protobuf_message, .. } => {
+            EspHomeMessageType::RequestWithAwaitFn { protobuf_message, .. } => {
                 f.debug_struct("RequestWithAwaitFn")
                     .field("protobuf_type", &protobuf_message.protobuf_type)
                     .field("protobuf_data", &protobuf_message.protobuf_data)
@@ -71,48 +72,25 @@ impl std::fmt::Debug for MessageType {
 
 #[derive(Debug)]
 /// Define the core message that will be used in the system
-pub struct Message {
-    pub message_type: MessageType,
+pub struct EspHomeMessage {
+    pub message_type: EspHomeMessageType,
 }
 
-#[derive(Debug)]
-/// A request message that waits for a specific response
-pub struct RequestWithAwaitMessage {
-    pub message: ProtobufMessage,
-    pub response_receiver: oneshot::Receiver<ProtobufMessage>, // Wait for a response
-}
-
-/// A request message that also includes a callback function to be executed on response
-pub struct RequestWithAwaitFn {
-    pub message: ProtobufMessage,
-    pub response_receiver: oneshot::Receiver<ProtobufMessage>, // Wait for a response
-    pub callback: Box<dyn FnOnce(ProtobufMessage) + Send + 'static>, // A callback function
-}
-
-impl std::fmt::Debug for RequestWithAwaitFn {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("RequestWithAwaitFn")
-            .field("protobuf_type", &self.message.protobuf_type)
-            .field("protobuf_data", &self.message.protobuf_data)
-            .finish()
-    }
-}
-
-impl Message {
+impl EspHomeMessage {
     // Helper method to access the embedded ProtobufMessage from a Message
     pub fn get_protobuf_message(&self) -> &ProtobufMessage {
         match &self.message_type {
-            MessageType::Response { protobuf_message }
-            | MessageType::Request { protobuf_message }
-            | MessageType::RequestWithAwait { protobuf_message, .. }
-            | MessageType::RequestWithAwaitFn { protobuf_message, .. } => protobuf_message,
+            EspHomeMessageType::Response { protobuf_message }
+            | EspHomeMessageType::Request { protobuf_message }
+            | EspHomeMessageType::RequestWithAwait { protobuf_message, .. }
+            | EspHomeMessageType::RequestWithAwaitFn { protobuf_message, .. } => protobuf_message,
         }
     }
 
     // Constructors for each message type
     pub fn new_response(protobuf_type: u32, protobuf_data: Vec<u8>) -> Self {
-        Message {
-            message_type: MessageType::Response {
+        EspHomeMessage {
+            message_type: EspHomeMessageType::Response {
                 protobuf_message: ProtobufMessage {
                     protobuf_type,
                     protobuf_data,
@@ -122,8 +100,8 @@ impl Message {
     }
 
     pub fn new_request(protobuf_type: u32, protobuf_data: Vec<u8>) -> Self {
-        Message {
-            message_type: MessageType::Request {
+        EspHomeMessage {
+            message_type: EspHomeMessageType::Request {
                 protobuf_message: ProtobufMessage {
                     protobuf_type,
                     protobuf_data,
@@ -137,8 +115,8 @@ impl Message {
         protobuf_data: Vec<u8>,
         response_protobuf_type: u32,
     ) -> Self {
-        Message {
-            message_type: MessageType::RequestWithAwait {
+        EspHomeMessage {
+            message_type: EspHomeMessageType::RequestWithAwait {
                 protobuf_message: ProtobufMessage {
                     protobuf_type,
                     protobuf_data,
@@ -152,10 +130,10 @@ impl Message {
         protobuf_type: u32,
         protobuf_data: Vec<u8>,
         response_protobuf_type: u32,
-        callback: Box<dyn FnOnce(ProtobufMessage) + Send + 'static>,
+        callback: Callback,
     ) -> Self {
-        Message {
-            message_type: MessageType::RequestWithAwaitFn {
+        EspHomeMessage {
+            message_type: EspHomeMessageType::RequestWithAwaitFn {
                 protobuf_message: ProtobufMessage {
                     protobuf_type,
                     protobuf_data,
@@ -167,7 +145,7 @@ impl Message {
     }
 }
 
-pub trait FrameCodec: Encoder<Message, Error = std::io::Error> + Decoder<Item = Message, Error = std::io::Error> {
+pub trait FrameCodec: Encoder<EspHomeMessage, Error = std::io::Error> + Decoder<Item = EspHomeMessage, Error = std::io::Error> {
     fn parse_frame(&self, src: &mut bytes::BytesMut) -> Result<(u8, u8), std::io::Error>;
     fn get_handshake_frame(&mut self) -> Option<Bytes>;
     fn close(&mut self);
@@ -202,10 +180,10 @@ impl FrameCodec for EspHomeCodec {
     }
 }
 
-impl Encoder<Message> for EspHomeCodec {
+impl Encoder<EspHomeMessage> for EspHomeCodec {
     type Error = std::io::Error;
 
-    fn encode(&mut self, item: Message, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
+    fn encode(&mut self, item: EspHomeMessage, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
         match self {
             EspHomeCodec::Noise(codec) => codec.write().unwrap().encode(item, dst),
             EspHomeCodec::Plain(codec) => codec.write().unwrap().encode(item, dst),
@@ -214,7 +192,7 @@ impl Encoder<Message> for EspHomeCodec {
 }
 
 impl Decoder for EspHomeCodec {
-    type Item = Message;
+    type Item = EspHomeMessage;
     type Error = std::io::Error;
 
     fn decode(&mut self, src: &mut bytes::BytesMut) -> Result<Option<Self::Item>, Self::Error> {

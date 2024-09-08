@@ -6,7 +6,7 @@ use noise_protocol::{patterns::noise_nn_psk0, CipherState, HandshakeState};
 use noise_rust_crypto::{ChaCha20Poly1305, Sha256, X25519};
 use tokio_util::codec::{Decoder, Encoder};
 
-use super::{FrameCodec, Message};
+use super::{FrameCodec, EspHomeMessage};
 
 static PROLOGUE: &'static [u8] = b"NoiseAPIInit\x00\x00";
 static HELLO: &'static [u8] = &[0x01, 0x00, 0x00];
@@ -85,7 +85,7 @@ impl FrameCodec for Noise {
 }
 
 impl Decoder for Noise {
-  type Item = Message;
+  type Item = EspHomeMessage;
   type Error = std::io::Error;
 
   fn decode(&mut self, src: &mut bytes::BytesMut) -> Result<Option<Self::Item>, Self::Error> {
@@ -138,7 +138,7 @@ impl Decoder for Noise {
           self.decoder = Some(decoder);
           self.state = NoiseState::Ready;
           return Ok(Some(
-            Message::new_response(0, "Handshake completed".as_bytes().to_vec())
+            EspHomeMessage::new_response(0, "Handshake completed".as_bytes().to_vec())
           ));
         } else {
           self.initiator = Some(handshake_state);
@@ -158,7 +158,7 @@ impl Decoder for Noise {
         let msg_type_low = buffer[1] as u32;
 
         return Ok(Some(
-          Message::new_response(msg_type_high.checked_shr(8).unwrap_or(0) | msg_type_low, buffer[4..].to_vec())
+          EspHomeMessage::new_response(msg_type_high.checked_shr(8).unwrap_or(0) | msg_type_low, buffer[4..].to_vec())
         ));
       },
       NoiseState::Closed => return Err(Error::new(std::io::ErrorKind::InvalidData, "Connection closed")),
@@ -168,10 +168,10 @@ impl Decoder for Noise {
   }
 }
 
-impl Encoder<Message> for Noise {
+impl Encoder<EspHomeMessage> for Noise {
   type Error = std::io::Error;
 
-  fn encode(&mut self, item: Message, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
+  fn encode(&mut self, item: EspHomeMessage, dst: &mut bytes::BytesMut) -> Result<(), Self::Error> {
 
     if self.state != NoiseState::Ready || self.encoder.is_none() {
       return Err(Error::new(std::io::ErrorKind::InvalidData, "Encoder not initialized"));
