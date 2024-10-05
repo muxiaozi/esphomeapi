@@ -9,9 +9,9 @@ pub use plain::Plain;
 use tokio::sync::oneshot;
 use tokio_util::codec::{Decoder, Encoder};
 
-use crate::Result as EspResult;
+use crate::{Result as EspResult, Connection};
 
-pub type Callback = Box<dyn Fn(ProtobufMessage) -> EspResult<()> + Send + Sync + 'static>;
+pub type Callback = Box<dyn Fn(Arc<RwLock<Connection>>, ProtobufMessage) -> EspResult<()> + Send + Sync + 'static>;
 
 #[derive(Debug, Clone)]
 // A common struct that holds shared fields between messages

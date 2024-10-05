@@ -4,7 +4,7 @@ mod utils;
 use std::{
   collections::HashMap,
   sync::{Arc, RwLock},
-  time::Duration,
+  time::{Duration, SystemTime},
 };
 
 use bytes::Bytes;
@@ -19,7 +19,7 @@ use tokio::{
   },
   task::JoinHandle,
 };
-use tokio_stream::{Stream, StreamExt};
+use tokio_stream::StreamExt;
 use tokio_util::codec::{FramedRead, FramedWrite};
 
 
@@ -29,6 +29,7 @@ use self::codec::FrameCodec;
 
 use utils::Options as _;
 
+#[derive(Clone, Debug)]
 enum ConnectionState {
   /// The connection is initialized, but connect() wasn't called yet
   Initialized,
@@ -41,6 +42,7 @@ enum ConnectionState {
   Closed,
 }
 
+#[derive(Clone)]
 pub struct Connection {
   host: String,
   port: u32,
@@ -50,7 +52,6 @@ pub struct Connection {
   is_connected: bool,
   keep_alive_duration: tokio::time::Duration,
   expected_name: Option<String>,
-  received_name: Option<String>,
   client_info: String,
   message_handlers: Arc<RwLock<HashMap<u32, Vec<(bool, Callback)>>>>,
   channel_tx: Option<tokio::sync::mpsc::Sender<EspHomeMessage>>,
@@ -94,7 +95,6 @@ impl Connection {
       is_connected: false,
       keep_alive_duration: keep_alive_duration.unwrap_or(Duration::from_secs(20)),
       expected_name,
-      received_name: None,
       client_info: client_info.unwrap_or("esphome-rs".to_string()),
       message_handlers: Arc::new(RwLock::new(message_handlers)),
       channel_tx: None,
@@ -117,13 +117,19 @@ impl Connection {
     self
       .init_handshake(handshake_frame, &mut reader, &mut writer)
       .await?;
+
+    self.add_message_handler(proto::api::DisconnectRequest::get_option_id(), Box::new(Self::handle_disconnect_request), false);
+    self.add_message_handler(proto::api::PingRequest::get_option_id(), Box::new(Self::handle_ping_request), false);
+    self.add_message_handler(proto::api::GetTimeRequest::get_option_id(), Box::new(Self::handle_get_time_request), false);
+
     self.init_hello(login).await?;
 
     self.state = ConnectionState::Connected;
     // Create a new codec for the writer
     let mut writer = FramedWrite::new(BufWriter::new(writer), self.codec.clone());
 
-    let tcp_reader_handle = tokio::spawn(async move {
+    // Reading messages from TCP stream and sending them to the mpsc channel
+    tokio::spawn(async move {
       let tx = tx.clone();
       while let Some(frame) = reader.next().await {
         match frame {
@@ -137,10 +143,14 @@ impl Connection {
       }
     });
 
-    let message_handlers = self.message_handlers.clone();
-    let tx = self.channel_tx.clone().unwrap();
 
-    let mpsc_handle = tokio::spawn(async move {
+    self.keep_alive(self.keep_alive_duration);
+
+    let tx = self.channel_tx.clone().unwrap();
+    let message_handlers = self.message_handlers.clone();
+    let connection = Arc::new(RwLock::new(self.clone()));
+
+    tokio::spawn(async move {
       while let Some(message) = rx.recv().await {
         match message.message_type {
           codec::EspHomeMessageType::Response { protobuf_message } => {
@@ -152,7 +162,7 @@ impl Connection {
             {
               handlers.retain(|(remove_after_call, callback)| {
                 // Call the handler function with the message
-                let _ = callback(ProtobufMessage {
+                let _ = callback(connection.clone(), ProtobufMessage {
                   protobuf_type: protobuf_message.protobuf_type,
                   protobuf_data: protobuf_message.protobuf_data.clone(),
                 });
@@ -201,7 +211,7 @@ impl Connection {
                     {
                       handlers.retain(|(remove_after_call, callback)| {
                         // Call the handler function with the message
-                        let _ = callback(ProtobufMessage {
+                        let _ = callback(connection.clone(), ProtobufMessage {
                           protobuf_type: protobuf_message.protobuf_type,
                           protobuf_data: protobuf_message.protobuf_data.clone(),
                         });
@@ -249,7 +259,7 @@ impl Connection {
                   protobuf_message: response_message,
                 } => {
                   if response_message.protobuf_type == response_protobuf_type {
-                    let _ = callback(response_message);
+                    let _ = callback(connection.clone(), response_message);
                     break;
                   } else {
                     tx.send(EspHomeMessage::new_response(
@@ -267,13 +277,6 @@ impl Connection {
         }
       }
     });
-
-    // tokio::select! {}
-
-    self.keep_alive(self.keep_alive_duration);
-
-    // tcp_reader_handle.await.unwrap();
-    // mpsc_handle.await.unwrap();
 
     Ok(())
   }
@@ -311,7 +314,7 @@ impl Connection {
   async fn init_hello(&mut self, login: bool) -> Result<()> {
     let hello = self.make_hello_request();
     let expected_name = self.expected_name.clone();
-    let hello_callback: Callback = Box::new(move |message| {
+    let hello_callback: Callback = Box::new(move |_, message| {
       let response = proto::api::HelloResponse::parse_from_bytes(&message.protobuf_data).unwrap();
       let received_name = response.name;
       if let Some(expected_name) = expected_name.clone() {
@@ -507,12 +510,10 @@ impl Connection {
   }
 
   pub fn add_message_handler(&mut self, msg_type: u32, handler: Callback, remove_after_call: bool) {
-    println!("Adding message handler for type {}", msg_type);
     self.message_handlers.write().unwrap()
       .entry(msg_type)
       .or_insert_with(Vec::new)
       .push((remove_after_call, handler));
-    println!("Added message handler for type {}", msg_type);
   }
 
   fn make_hello_request(&self) -> proto::api::HelloRequest {
@@ -539,7 +540,7 @@ impl Connection {
     let ping_response_protobuf_type = proto::api::PingResponse::get_option_id();
     self.add_message_handler(
       ping_response_protobuf_type,
-      Box::new(move |message| {
+      Box::new(move |_, message| {
         let response = proto::api::PingResponse::parse_from_bytes(&message.protobuf_data).unwrap();
         println!("Received PingResponse: {:?}", response);
         Ok(())
@@ -563,5 +564,43 @@ impl Connection {
         }
       }
     })
+  }
+
+  fn handle_disconnect_request(connection: Arc<RwLock<Self>>, _: ProtobufMessage) -> Result<()> {
+      let mut connection = connection.write().unwrap();
+      connection.state = ConnectionState::Closed;
+      let message = proto::api::DisconnectResponse::default();
+      let connection = connection.clone();
+      tokio::spawn(async move {
+        if let Err(e) = connection.send_message(Box::new(message)).await {
+          println!("Error sending message: {:?}", e);
+        }
+      });
+      Ok(())
+    }
+
+  fn handle_ping_request(connection: Arc<RwLock<Self>>, _: ProtobufMessage) -> Result<()> {
+      let connection = connection.read().unwrap();
+      let message = proto::api::PingResponse::default();
+      let connection = connection.clone();
+      tokio::spawn(async move {
+        if let Err(e) = connection.send_message(Box::new(message)).await {
+          println!("Error sending message: {:?}", e);
+        }
+      });
+      Ok(())
+  }
+
+  fn handle_get_time_request(connection: Arc<RwLock<Self>>, _: ProtobufMessage) -> Result<()> {
+    let connection = connection.read().unwrap();
+    let mut response = proto::api::GetTimeResponse::new();
+    response.epoch_seconds = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as u32;
+    let connection = connection.clone();
+    tokio::spawn(async move {
+      if let Err(e) = connection.send_message(Box::new(response)).await {
+        println!("Error sending message: {:?}", e);
+      }
+    });
+    Ok(())
   }
 }

@@ -5,6 +5,7 @@ mod proto {
 pub use proto::api;
 
 mod connection;
+mod model;
 pub use connection::Connection;
 mod client;
 
