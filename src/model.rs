@@ -5,7 +5,7 @@ use enumflags2::bitflags;
 use crate::proto;
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
-struct APIVersion {
+pub struct APIVersion {
   major: u8,
   minor: u8,
 }
@@ -16,7 +16,7 @@ impl APIVersion {
   }
 }
 
-enum BluetoothProxyFeature {
+pub enum BluetoothProxyFeature {
   PassiveScan = 1 << 0,
   ActiveConnections = 1 << 1,
   RemoteCaching = 1 << 2,
@@ -25,11 +25,11 @@ enum BluetoothProxyFeature {
   RawAdvertisements = 1 << 5,
 }
 
-enum BluetoothProxySubscriptionFlag {
+pub enum BluetoothProxySubscriptionFlag {
   RawAdvertisements = 1 << 0,
 }
 
-enum VoiceAssistantFeature {
+pub enum VoiceAssistantFeature {
   VoiceAssistant = 1 << 0,
   Speaker = 1 << 1,
   APIAudio = 1 << 2,
@@ -37,11 +37,11 @@ enum VoiceAssistantFeature {
   Announce = 1 << 4,
 }
 
-enum VoiceAssistantSubscriptionFlag {
+pub enum VoiceAssistantSubscriptionFlag {
   APIAudio = 1 << 0,
 }
 
-struct DeviceInfo {
+pub struct DeviceInfo {
   uses_password: bool,
   name: String,
   friendly_name: String,
@@ -122,13 +122,13 @@ impl DeviceInfo {
   }
 }
 
-enum EntityCategory {
+pub enum EntityCategory {
   None = 0,
   Config,
   Diagnostic,
 }
 
-struct EntityInfo {
+pub struct EntityInfo {
   object_id: String,
   key: u8,
   name: String,
@@ -138,18 +138,18 @@ struct EntityInfo {
   enitity_category: Option<EntityCategory>,
 }
 
-struct EntityState {
+pub struct EntityState {
   key: u8,
 }
 
 // ==================== BINARY SENSOR ====================
-struct BinarySensorInfo {
+pub struct BinarySensorInfo {
   entity_info: EntityInfo,
   device_class: String,
   is_status_binary_sensor: bool,
 }
 
-struct BinarySensorState {
+pub struct BinarySensorState {
   entity_state: EntityState,
   state: bool,
   missing_state: bool,
@@ -157,7 +157,7 @@ struct BinarySensorState {
 
 // ==================== COVER ====================
 
-struct CoverInfo {
+pub struct CoverInfo {
   entity_info: EntityInfo,
   assumed_state: bool,
   supports_stop: bool,
@@ -167,24 +167,24 @@ struct CoverInfo {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum LegacyCoverState {
+pub enum LegacyCoverState {
   Open = 0,
   Closed,
 }
 
-enum LegacyCoverCommand {
+pub enum LegacyCoverCommand {
   Open = 0,
   Close,
   Stop,
 }
 
-enum CoverOperation {
+pub enum CoverOperation {
   Idle = 0,
   Opening,
   Closing,
 }
 
-struct CoverState {
+pub struct CoverState {
   entity_state: EntityState,
   legacy_state: Option<LegacyCoverState>,
   position: f32,
@@ -204,19 +204,19 @@ impl CoverState {
 }
 
 // ==================== EVENT ====================
-struct EventInfo {
+pub struct EventInfo {
   entity_info: EntityInfo,
   device_class: String,
   event_types: Vec<String>,
 }
 
-struct Event {
+pub struct Event {
   entity_state: EntityState,
   event_type: String,
 }
 
 // ==================== FAN ====================
-struct FanInfo {
+pub struct FanInfo {
   entity_info: EntityInfo,
   supports_oscillation: bool,
   supports_speed: bool,
@@ -225,18 +225,18 @@ struct FanInfo {
   supported_preset_modes: Vec<String>,
 }
 
-enum FanSpeed {
+pub enum FanSpeed {
   Low = 0,
   Medium,
   High,
 }
 
-enum FanDirection {
+pub enum FanDirection {
   Forward = 0,
   Reverse,
 }
 
-struct FanState {
+pub struct FanState {
   entity_state: EntityState,
   oscillating: bool,
   speed: Option<FanSpeed>,
@@ -249,7 +249,7 @@ struct FanState {
 #[bitflags]
 #[repr(u8)]
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum LightColorCapability {
+pub enum LightColorCapability {
   OnOff = 1 << 0,
   Brightness = 1 << 1,
   White = 1 << 2,
@@ -258,7 +258,7 @@ enum LightColorCapability {
   RGB = 1 << 5,
 }
 
-struct LightInfo {
+pub struct LightInfo {
   entity_info: EntityInfo,
   supported_color_modes: Vec<u8>,
   min_mireds: f32,
@@ -320,7 +320,7 @@ impl LightInfo {
   }
 }
 
-struct LightState {
+pub struct LightState {
   entity_state: EntityState,
   state: bool,
   brightness: f32,
@@ -338,20 +338,20 @@ struct LightState {
 
 // ==================== SENSOR ====================
 
-enum SensorStateClass {
+pub enum SensorStateClass {
   None = 0,
   Measurement,
   TotalIncreasing,
   Total,
 }
 
-enum LastResetType {
+pub enum LastResetType {
   None = 0,
   Never,
   Auto,
 }
 
-struct SensorInfo {
+pub struct SensorInfo {
   entity_info: EntityInfo,
   device_class: String,
   unit_of_measurement: String,
@@ -361,42 +361,42 @@ struct SensorInfo {
   last_reset_type: Option<LastResetType>,
 }
 
-struct SensorState {
+pub struct SensorState {
   entity_state: EntityState,
   state: f32,
   missing_state: bool,
 }
 
 // ==================== SWITCH ====================
-struct SwitchInfo {
+pub struct SwitchInfo {
   entity_info: EntityInfo,
   assumed_state: bool,
   device_class: String,
 }
 
-struct SwitchState {
+pub struct SwitchState {
   entity_state: EntityState,
   state: bool,
 }
 
 // ==================== TEXT SENSOR ====================
-struct TextSensorInfo {
+pub struct TextSensorInfo {
   entity_info: EntityInfo,
   device_class: String,
 }
 
-struct TextSensorState {
+pub struct TextSensorState {
   entity_state: EntityState,
   state: String,
   missing_state: bool,
 }
 
 // ==================== CAMERA ====================
-struct CameraInfo {
+pub struct CameraInfo {
   entity_info: EntityInfo,
 }
 
-struct CameraState {
+pub struct CameraState {
   entity_state: EntityState,
   data: Vec<u8>,
 }
@@ -404,7 +404,7 @@ struct CameraState {
 // ==================== CLIMATE ====================
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum ClimateMode {
+pub enum ClimateMode {
   Off = 0,
   HeatCool,
   Cool,
@@ -414,7 +414,7 @@ enum ClimateMode {
   Auto,
 }
 
-enum ClimateFanMode {
+pub enum ClimateFanMode {
   On = 0,
   Off,
   Auto,
@@ -427,14 +427,14 @@ enum ClimateFanMode {
   Quiet,
 }
 
-enum ClimateSwingMode {
+pub enum ClimateSwingMode {
   Off = 0,
   Both,
   Vertical,
   Horizontal,
 }
 
-enum ClimateAction {
+pub enum ClimateAction {
   Off = 0,
   Cooling,
   Heating,
@@ -444,7 +444,7 @@ enum ClimateAction {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Copy)]
-enum ClimatePreset {
+pub enum ClimatePreset {
   None = 0,
   Home,
   Away,
@@ -455,7 +455,7 @@ enum ClimatePreset {
   Activity,
 }
 
-struct ClimateInfo {
+pub struct ClimateInfo {
   entity_info: EntityInfo,
   supports_current_temperature: bool,
   supports_two_point_target_temperature: bool,
@@ -489,7 +489,7 @@ impl ClimateInfo {
   }
 }
 
-struct ClimateState {
+pub struct ClimateState {
   entity_state: EntityState,
   mode: Option<ClimateMode>,
   action: Option<ClimateAction>,
@@ -521,13 +521,13 @@ impl ClimateState {
 
 // ==================== NUMBER ====================
 
-enum NumberMode {
+pub enum NumberMode {
   Auto = 0,
   Box,
   Slider,
 }
 
-struct NumberInfo {
+pub struct NumberInfo {
   entity_info: EntityInfo,
   min_value: f32,
   max_value: f32,
@@ -537,7 +537,7 @@ struct NumberInfo {
   device_class: String,
 }
 
-struct NumberState {
+pub struct NumberState {
   entity_state: EntityState,
   state: f32,
   missing_state: bool,
@@ -545,11 +545,11 @@ struct NumberState {
 
 // ==================== DATETIME DATE ====================
 
-struct DateInfo {
+pub struct DateInfo {
   entity_info: EntityInfo,
 }
 
-struct DateState {
+pub struct DateState {
   entity_state: EntityState,
   missing_state: bool,
   year: u16,
@@ -558,11 +558,11 @@ struct DateState {
 }
 
 // ==================== DATETIME TIME ====================
-struct TimeInfo {
+pub struct TimeInfo {
   entity_info: EntityInfo,
 }
 
-struct TimeState {
+pub struct TimeState {
   entity_state: EntityState,
   missing_state: bool,
   hour: u8,
@@ -572,11 +572,11 @@ struct TimeState {
 
 // ==================== DATETIME DATETIME ====================
 
-struct DateTimeInfo {
+pub struct DateTimeInfo {
   entity_info: EntityInfo,
 }
 
-struct DateTimeState {
+pub struct DateTimeState {
   entity_state: EntityState,
   missing_state: bool,
   epoch_seconds: u32,
@@ -584,12 +584,12 @@ struct DateTimeState {
 
 // ==================== SELECT ====================
 
-struct SelectInfo {
+pub struct SelectInfo {
   entity_info: EntityInfo,
   options: Vec<String>,
 }
 
-struct SelectState {
+pub struct SelectState {
   entity_state: EntityState,
   state: String,
   missing_state: bool,
@@ -597,28 +597,28 @@ struct SelectState {
 
 // ==================== SIREN ====================
 
-struct SirenInfo {
+pub struct SirenInfo {
   entity_info: EntityInfo,
   tones: Vec<String>,
   supports_volume: bool,
   supports_duration: bool,
 }
 
-struct SirenState {
+pub struct SirenState {
   entity_state: EntityState,
   state: bool,
 }
 
 // ==================== BUTTON ====================
 
-struct ButtonInfo {
+pub struct ButtonInfo {
   entity_info: EntityInfo,
   device_class: String,
 }
 
 // ==================== LOCK ====================
 
-enum LockState {
+pub enum LockState {
   None = 0,
   Locked,
   Unlocked,
@@ -627,13 +627,13 @@ enum LockState {
   Unlocking,
 }
 
-enum LockCommand {
+pub enum LockCommand {
   Unlock = 0,
   Lock,
   Open,
 }
 
-struct LockInfo {
+pub struct LockInfo {
   entity_info: EntityInfo,
   supports_open: bool,
   assumed_state: bool,
@@ -642,14 +642,14 @@ struct LockInfo {
   code_format: String,
 }
 
-struct LockEntityState {
+pub struct LockEntityState {
   entity_state: EntityState,
   state: Option<LockState>,
 }
 
 // ==================== VALVE ====================
 
-struct ValveInfo {
+pub struct ValveInfo {
   entity_info: EntityInfo,
   device_class: String,
   assumed_state: bool,
@@ -657,13 +657,13 @@ struct ValveInfo {
   supports_position: bool,
 }
 
-enum ValveOperation {
+pub enum ValveOperation {
   Idle = 0,
   Opening,
   Closing,
 }
 
-struct ValveState {
+pub struct ValveState {
   entity_state: EntityState,
   position: f32,
   current_operation: Option<ValveOperation>,
@@ -671,14 +671,14 @@ struct ValveState {
 
 // ==================== MEDIA PLAYER ====================
 
-enum MediaPlayerState {
+pub enum MediaPlayerState {
   None = 0,
   Idle,
   Playing,
   Paused,
 }
 
-enum MediaPlayerCommand {
+pub enum MediaPlayerCommand {
   Play = 0,
   Pause,
   Stop,
@@ -686,12 +686,12 @@ enum MediaPlayerCommand {
   Unmute,
 }
 
-enum MediaPlayerFormatPurpose {
+pub enum MediaPlayerFormatPurpose {
   Default = 0,
   Announcement,
 }
 
-struct MediaPlayerSupportedFormat {
+pub struct MediaPlayerSupportedFormat {
   format: String,
   sample_rate: u32,
   num_channels: u8,
@@ -699,13 +699,13 @@ struct MediaPlayerSupportedFormat {
   sample_bytes: u8,
 }
 
-struct MediaPlayerInfo {
+pub struct MediaPlayerInfo {
   entity_info: EntityInfo,
   supports_pause: bool,
   supported_formats: Vec<MediaPlayerSupportedFormat>,
 }
 
-struct MediaPlayerEntityState {
+pub struct MediaPlayerEntityState {
   entity_state: EntityState,
   state: Option<MediaPlayerState>,
   volume: f32,
@@ -714,7 +714,7 @@ struct MediaPlayerEntityState {
 
 // ==================== ALARM CONTROL PANEL ====================
 
-enum AlarmControlPanelState {
+pub enum AlarmControlPanelState {
   Disarmed = 0,
   ArmedHome,
   ArmedAway,
@@ -727,7 +727,7 @@ enum AlarmControlPanelState {
   Triggered,
 }
 
-enum AlarmControlPanelCommand {
+pub enum AlarmControlPanelCommand {
   Disarm = 0,
   ArmHome,
   ArmAway,
@@ -737,25 +737,25 @@ enum AlarmControlPanelCommand {
   Trigger,
 }
 
-struct AlarmControlPanelInfo {
+pub struct AlarmControlPanelInfo {
   entity_info: EntityInfo,
   supported_features: u8,
   requires_code: bool,
   requires_code_to_arm: bool,
 }
 
-struct AlarmControlPanelEntityState {
+pub struct AlarmControlPanelEntityState {
   entity_state: EntityState,
   state: Option<AlarmControlPanelState>,
 }
 
 // ==================== TEXT ====================
-enum TextMode {
+pub enum TextMode {
   Text = 0,
   Password,
 }
 
-struct TextInfo {
+pub struct TextInfo {
   entity_info: EntityInfo,
   min_length: u8,
   max_length: u8,
@@ -763,25 +763,25 @@ struct TextInfo {
   mode: Option<TextMode>,
 }
 
-struct TextState {
+pub struct TextState {
   entity_state: EntityState,
   state: String,
   missing_state: bool,
 }
 
 // ==================== UPDATE ====================
-enum UpdateCommand {
+pub enum UpdateCommand {
   None = 0,
   Install,
   Check,
 }
 
-struct UpdateInfo {
+pub struct UpdateInfo {
   entity_info: EntityInfo,
   device_class: String,
 }
 
-struct UpdateState {
+pub struct UpdateState {
   entity_state: EntityState,
   missing_state: bool,
   in_progress: bool,
@@ -795,7 +795,7 @@ struct UpdateState {
 }
 
 // ==================== USER-DEFINED SERVICES ====================
-struct HomeassistantServiceCall {
+pub struct HomeassistantServiceCall {
   service: String,
   is_event: bool,
   data: HashMap<String, String>,
@@ -803,7 +803,7 @@ struct HomeassistantServiceCall {
   variables: HashMap<String, String>,
 }
 
-enum UserServiceArgType {
+pub enum UserServiceArgType {
   Bool = 0,
   Int,
   Float,
@@ -814,12 +814,12 @@ enum UserServiceArgType {
   StringArray,
 }
 
-struct UserServiceArg {
+pub struct UserServiceArg {
   name: String,
   arg_type: UserServiceArgType,
 }
 
-struct UserService {
+pub struct UserService {
   name: String,
   key: u8,
   args: Vec<UserServiceArg>,
@@ -835,7 +835,7 @@ fn uuid_convert(uuid: String) -> String {
   return uuid;
 }
 
-struct BluetoothLEAdvertisement {
+pub struct BluetoothLEAdvertisement {
   address: u64,
   rssi: i32,
   address_type: u32,
@@ -914,77 +914,77 @@ impl BluetoothLEAdvertisement {
   }
 }
 
-struct BluetoothDeviceConnection {
+pub struct BluetoothDeviceConnection {
   address: u64,
   connected: bool,
   mtu: u16,
   error: u8,
 }
 
-struct BluetoothDevicePairing {
+pub struct BluetoothDevicePairing {
   address: u64,
   paired: bool,
   error: u8,
 }
 
-struct BluetoothDeviceUnpairing {
+pub struct BluetoothDeviceUnpairing {
   address: u64,
   success: bool,
   error: u8,
 }
 
-struct BluetoothDeviceClearCache {
+pub struct BluetoothDeviceClearCache {
   address: u64,
   success: bool,
   error: u8,
 }
 
-struct BluetoothGATTRead {
+pub struct BluetoothGATTRead {
   address: u64,
   handle: u16,
   data: Vec<u8>,
 }
 
-struct BluetoothGATTDescriptor {
+pub struct BluetoothGATTDescriptor {
   uuid: String,
   handle: u16,
 }
 
-struct BluetoothGATTCharacteristic {
+pub struct BluetoothGATTCharacteristic {
   uuid: String,
   handle: u16,
   properties: u8,
   descriptors: Vec<BluetoothGATTDescriptor>,
 }
 
-struct BluetoothGATTService {
+pub struct BluetoothGATTService {
   uuid: String,
   handle: u16,
   characteristics: Vec<BluetoothGATTCharacteristic>,
 }
 
-struct BluetoothGATTServices {
+pub struct BluetoothGATTServices {
   address: u64,
   services: Vec<BluetoothGATTService>,
 }
 
-struct ESPHomeBluetoothGATTServices {
+pub struct ESPHomeBluetoothGATTServices {
   address: u64,
   services: Vec<BluetoothGATTService>,
 }
 
-struct BluetoothConnectionsFree {
+pub struct BluetoothConnectionsFree {
   free: u8,
   limit: u8,
 }
 
-struct BluetoothGATTError {
+pub struct BluetoothGATTError {
   address: u64,
   handle: u16,
   error: u8,
 }
 
-enum BluetoothDeviceRequestType {
+pub enum BluetoothDeviceRequestType {
   Connect = 0,
   Disconnect,
   Pair,
@@ -994,18 +994,18 @@ enum BluetoothDeviceRequestType {
   ClearCache,
 }
 
-enum VoiceAssistantCommandFlag {
+pub enum VoiceAssistantCommandFlag {
   UseVAD = 1 << 0,
   UseWakeWord = 1 << 1,
 }
 
-struct VoiceAssistantAudioSettings {
+pub struct VoiceAssistantAudioSettings {
   noise_suppression_level: u8,
   auto_gain: u8,
   volume_multiplier: f32,
 }
 
-struct VoiceAssistantCommand {
+pub struct VoiceAssistantCommand {
   start: bool,
   conversation_id: String,
   flags: u8,
@@ -1013,34 +1013,34 @@ struct VoiceAssistantCommand {
   wake_word_phrase: String,
 }
 
-struct VoiceAssistantAudioData {
+pub struct VoiceAssistantAudioData {
   data: Vec<u8>,
   end: bool,
 }
 
-struct VoiceAssistantAnnounceFinished {
+pub struct VoiceAssistantAnnounceFinished {
   success: bool,
 }
 
-struct VoiceAssistantWakeWord {
+pub struct VoiceAssistantWakeWord {
   id: String,
   wake_word: String,
   trained_languages: Vec<String>,
 }
 
-struct VoiceAssistantConfigurationResponse {
+pub struct VoiceAssistantConfigurationResponse {
   available_wake_words: Vec<VoiceAssistantWakeWord>,
   active_wake_words: Vec<String>,
   max_active_wake_words: u8,
 }
 
-struct VoiceAssistantConfigurationRequest {}
+pub struct VoiceAssistantConfigurationRequest {}
 
-struct VoiceAssistantSetConfiguration {
+pub struct VoiceAssistantSetConfiguration {
   active_wake_words: Vec<u8>,
 }
 
-enum LogLevel {
+pub enum LogLevel {
   None = 0,
   Error,
   Warn,
@@ -1051,7 +1051,7 @@ enum LogLevel {
   VeryVerbose,
 }
 
-enum VoiceAssistantEventType {
+pub enum VoiceAssistantEventType {
   Error = 0,
   RunStart,
   RunEnd,
@@ -1069,7 +1069,7 @@ enum VoiceAssistantEventType {
   TTSStreamEnd = 99,
 }
 
-enum VoiceAssistantTimerEventType {
+pub enum VoiceAssistantTimerEventType {
   TimerStarted = 0,
   TimerUpdated,
   TimerCancelled,

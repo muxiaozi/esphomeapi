@@ -1,5 +1,4 @@
 mod codec;
-mod utils;
 
 use std::{
   collections::HashMap,
@@ -8,26 +7,27 @@ use std::{
 };
 
 use bytes::Bytes;
-use codec::{Callback, EspHomeCodec, EspHomeMessage, Noise, Plain, ProtobufMessage};
+use codec::{Callback, EspHomeCodec, EspHomeMessage, Noise, Plain};
 use futures::SinkExt as _;
 use protobuf::Message as _;
 use tokio::{
-  io::{AsyncWriteExt, BufReader, BufWriter},
+  io::{AsyncWriteExt as _, BufReader, BufWriter},
   net::{
     tcp::{OwnedReadHalf, OwnedWriteHalf},
     TcpStream,
   },
   task::JoinHandle,
+  time::timeout,
 };
 use tokio_stream::StreamExt;
 use tokio_util::codec::{FramedRead, FramedWrite};
 
-
-use crate::{proto, Error, Result};
+use crate::{api, proto, Error, Result};
 
 use self::codec::FrameCodec;
 
-use utils::Options as _;
+use crate::utils::Options as _;
+pub use codec::ProtobufMessage;
 
 #[derive(Clone, Debug)]
 enum ConnectionState {
@@ -118,15 +118,21 @@ impl Connection {
       .init_handshake(handshake_frame, &mut reader, &mut writer)
       .await?;
 
-    self.add_message_handler(proto::api::DisconnectRequest::get_option_id(), Box::new(Self::handle_disconnect_request), false);
-    self.add_message_handler(proto::api::PingRequest::get_option_id(), Box::new(Self::handle_ping_request), false);
-    self.add_message_handler(proto::api::GetTimeRequest::get_option_id(), Box::new(Self::handle_get_time_request), false);
-
-    self.init_hello(login).await?;
-
-    self.state = ConnectionState::Connected;
-    // Create a new codec for the writer
-    let mut writer = FramedWrite::new(BufWriter::new(writer), self.codec.clone());
+    self.add_message_handler(
+      proto::api::DisconnectRequest::get_option_id(),
+      Box::new(Self::handle_disconnect_request),
+      false,
+    );
+    self.add_message_handler(
+      proto::api::PingRequest::get_option_id(),
+      Box::new(Self::handle_ping_request),
+      false,
+    );
+    self.add_message_handler(
+      proto::api::GetTimeRequest::get_option_id(),
+      Box::new(Self::handle_get_time_request),
+      false,
+    );
 
     // Reading messages from TCP stream and sending them to the mpsc channel
     tokio::spawn(async move {
@@ -143,13 +149,14 @@ impl Connection {
       }
     });
 
-
-    self.keep_alive(self.keep_alive_duration);
-
     let tx = self.channel_tx.clone().unwrap();
     let message_handlers = self.message_handlers.clone();
     let connection = Arc::new(RwLock::new(self.clone()));
+    // Create a new codec for the writer
+    let mut writer = FramedWrite::new(BufWriter::new(writer), self.codec.clone());
 
+    // Spawn a new task to handle messages from the mpsc channel
+    // This has to be spawned before any writing to the mpsc channel
     tokio::spawn(async move {
       while let Some(message) = rx.recv().await {
         match message.message_type {
@@ -162,10 +169,13 @@ impl Connection {
             {
               handlers.retain(|(remove_after_call, callback)| {
                 // Call the handler function with the message
-                let _ = callback(connection.clone(), ProtobufMessage {
-                  protobuf_type: protobuf_message.protobuf_type,
-                  protobuf_data: protobuf_message.protobuf_data.clone(),
-                });
+                let _ = callback(
+                  connection.clone(),
+                  ProtobufMessage {
+                    protobuf_type: protobuf_message.protobuf_type,
+                    protobuf_data: protobuf_message.protobuf_data.clone(),
+                  },
+                );
                 !*remove_after_call
               });
             }
@@ -183,6 +193,7 @@ impl Connection {
           codec::EspHomeMessageType::RequestWithAwait {
             protobuf_message,
             response_protobuf_type,
+            tx: oneshot_tx,
           } => {
             println!(
               "Sending RequestWithAwait message {}",
@@ -204,6 +215,10 @@ impl Connection {
                       protobuf_message
                     );
 
+                    if let Err(_) = oneshot_tx.send(protobuf_message.clone()) {
+                      println!("Error sending response to oneshot channel");
+                    }
+
                     if let Some(handlers) = message_handlers
                       .write()
                       .unwrap()
@@ -211,10 +226,14 @@ impl Connection {
                     {
                       handlers.retain(|(remove_after_call, callback)| {
                         // Call the handler function with the message
-                        let _ = callback(connection.clone(), ProtobufMessage {
-                          protobuf_type: protobuf_message.protobuf_type,
-                          protobuf_data: protobuf_message.protobuf_data.clone(),
-                        });
+
+                        let _ = callback(
+                          connection.clone(),
+                          ProtobufMessage {
+                            protobuf_type: protobuf_message.protobuf_type,
+                            protobuf_data: protobuf_message.protobuf_data.clone(),
+                          },
+                        );
                         !*remove_after_call
                       });
                     }
@@ -236,47 +255,13 @@ impl Connection {
               }
             }
           }
-          codec::EspHomeMessageType::RequestWithAwaitFn {
-            protobuf_message,
-            response_protobuf_type,
-            callback,
-          } => {
-            println!(
-              "Sending RequestWithAwaitFn message {}",
-              protobuf_message.protobuf_type
-            );
-            let send_proto = protobuf_message.clone();
-            writer
-              .send(EspHomeMessage::new_request(
-                send_proto.protobuf_type,
-                send_proto.protobuf_data,
-              ))
-              .await
-              .unwrap();
-            while let Some(message) = rx.recv().await {
-              match message.message_type {
-                codec::EspHomeMessageType::Response {
-                  protobuf_message: response_message,
-                } => {
-                  if response_message.protobuf_type == response_protobuf_type {
-                    let _ = callback(connection.clone(), response_message);
-                    break;
-                  } else {
-                    tx.send(EspHomeMessage::new_response(
-                      response_message.protobuf_type,
-                      response_message.protobuf_data,
-                    ))
-                    .await
-                    .unwrap();
-                  }
-                }
-                _ => {}
-              }
-            }
-          }
         }
       }
     });
+
+    self.init_hello(login).await?;
+    self.state = ConnectionState::Connected;
+    self.keep_alive(self.keep_alive_duration);
 
     Ok(())
   }
@@ -314,26 +299,19 @@ impl Connection {
   async fn init_hello(&mut self, login: bool) -> Result<()> {
     let hello = self.make_hello_request();
     let expected_name = self.expected_name.clone();
-    let hello_callback: Callback = Box::new(move |_, message| {
-      let response = proto::api::HelloResponse::parse_from_bytes(&message.protobuf_data).unwrap();
-      let received_name = response.name;
-      if let Some(expected_name) = expected_name.clone() {
-        if received_name != expected_name {
-          println!("Received name does not match expected name");
-        } else {
-          println!("Received name matches expected name");
-        }
-      }
-      Ok(())
-    });
 
-    self
-      .send_message_await_response_callback(
-        Box::new(hello),
-        proto::api::HelloResponse::get_option_id(),
-        hello_callback,
-      )
+    let response = self
+      .send_message_await_response(Box::new(hello), proto::api::HelloResponse::get_option_id())
       .await?;
+    let response = proto::api::HelloResponse::parse_from_bytes(&response.protobuf_data).unwrap();
+    let received_name = response.name;
+    if let Some(expected_name) = expected_name.clone() {
+      if received_name != expected_name {
+        println!("Received name does not match expected name");
+      } else {
+        println!("Received name matches expected name");
+      }
+    }
 
     if login {
       let connect = self.make_connect_request();
@@ -355,25 +333,14 @@ impl Connection {
     &self,
     message: Box<dyn protobuf::MessageDyn>,
     response_protobuf_type: u32,
-  ) -> Result<()> {
-    self
+  ) -> Result<ProtobufMessage> {
+    let responses = self
       .send_messages_await_response(vec![message], vec![response_protobuf_type])
-      .await
-  }
-
-  pub async fn send_message_await_response_callback(
-    &self,
-    message: Box<dyn protobuf::MessageDyn>,
-    response_protobuf_type: u32,
-    callback: Callback,
-  ) -> Result<()> {
-    self
-      .send_messages_await_response_callback(
-        vec![message],
-        vec![response_protobuf_type],
-        vec![callback],
-      )
-      .await
+      .await?;
+    if responses.len() != 1 {
+      return Err("Expected exactly one response".into());
+    }
+    Ok(responses[0].clone())
   }
 
   pub async fn send_messages(&self, messages: Vec<Box<dyn protobuf::MessageDyn>>) -> Result<()> {
@@ -393,13 +360,7 @@ impl Connection {
       match tx.send(request_message).await {
         Ok(_) => {}
         Err(e) => {
-          return Err(
-            Error::from(std::io::Error::new(
-              std::io::ErrorKind::BrokenPipe,
-              format!("Error sending message: {:?}", e.0),
-            ))
-            .into(),
-          );
+          return Err(format!("Error sending message: {:?}", e.0).into());
         }
       }
     }
@@ -410,18 +371,15 @@ impl Connection {
     &self,
     messages: Vec<Box<dyn protobuf::MessageDyn>>,
     response_protobuf_types: Vec<u32>,
-  ) -> Result<()> {
+  ) -> Result<Vec<ProtobufMessage>> {
     if response_protobuf_types.len() != messages.len() {
-      return Err(
-        Error::from(std::io::Error::new(
-          std::io::ErrorKind::InvalidInput,
-          "Number of response types must match number of messages",
-        ))
-        .into(),
-      );
+      return Err("Number of response types must match number of messages".into());
     }
 
-    let tx = self.channel_tx.clone().unwrap();
+    let mpsc_tx = self.channel_tx.clone().unwrap();
+
+    let mut responses = Vec::new();
+
     for (message, response_protobuf_type) in messages
       .into_iter()
       .zip(response_protobuf_types.into_iter())
@@ -434,83 +392,36 @@ impl Connection {
         .and_then(|options| proto::api_options::exts::id.get(options))
         .unwrap();
       let protobuf_data = message.write_to_bytes_dyn().unwrap();
+      let (tx, rx) = tokio::sync::oneshot::channel();
       let request_message = EspHomeMessage::new_request_with_await(
         protobuf_type,
         protobuf_data,
         response_protobuf_type,
+        tx,
       );
 
-      match tx.send(request_message).await {
-        Ok(_) => {}
-        Err(e) => {
-          return Err(
-            Error::from(std::io::Error::new(
-              std::io::ErrorKind::BrokenPipe,
-              format!("Error sending message: {:?}", e.0),
-            ))
-            .into(),
-          );
+      mpsc_tx.send(request_message).await?;
+
+      match timeout(Duration::from_secs(5), rx).await {
+        Ok(Ok(message)) => {
+          responses.push(message);
+        }
+        Ok(Err(_)) => {
+          return Err("Response channel closed".into());
+        }
+        Err(_) => {
+          return Err("Timeout waiting for response".into());
         }
       }
     }
-    Ok(())
-  }
-
-  pub async fn send_messages_await_response_callback(
-    &self,
-    messages: Vec<Box<dyn protobuf::MessageDyn>>,
-    response_protobuf_types: Vec<u32>,
-    callbacks: Vec<Callback>,
-  ) -> Result<()> {
-    if response_protobuf_types.len() != messages.len() {
-      return Err(
-        Error::from(std::io::Error::new(
-          std::io::ErrorKind::InvalidInput,
-          "Number of response types must match number of messages",
-        ))
-        .into(),
-      );
-    }
-
-    let tx = self.channel_tx.clone().unwrap();
-    for ((message, response_protobuf_type), callback) in messages
-      .into_iter()
-      .zip(response_protobuf_types.into_iter())
-      .zip(callbacks.into_iter())
-    {
-      let protobuf_type = message
-        .descriptor_dyn()
-        .proto()
-        .options
-        .as_ref()
-        .and_then(|options| proto::api_options::exts::id.get(options))
-        .unwrap();
-      let protobuf_data = message.write_to_bytes_dyn().unwrap();
-      let request_message = EspHomeMessage::new_request_with_await_fn(
-        protobuf_type,
-        protobuf_data,
-        response_protobuf_type,
-        callback,
-      );
-
-      match tx.send(request_message).await {
-        Ok(_) => {}
-        Err(e) => {
-          return Err(
-            Error::from(std::io::Error::new(
-              std::io::ErrorKind::BrokenPipe,
-              format!("Error sending message: {:?}", e.0),
-            ))
-            .into(),
-          );
-        }
-      }
-    }
-    Ok(())
+    Ok(responses)
   }
 
   pub fn add_message_handler(&mut self, msg_type: u32, handler: Callback, remove_after_call: bool) {
-    self.message_handlers.write().unwrap()
+    self
+      .message_handlers
+      .write()
+      .unwrap()
       .entry(msg_type)
       .or_insert_with(Vec::new)
       .push((remove_after_call, handler));
@@ -567,34 +478,37 @@ impl Connection {
   }
 
   fn handle_disconnect_request(connection: Arc<RwLock<Self>>, _: ProtobufMessage) -> Result<()> {
-      let mut connection = connection.write().unwrap();
-      connection.state = ConnectionState::Closed;
-      let message = proto::api::DisconnectResponse::default();
-      let connection = connection.clone();
-      tokio::spawn(async move {
-        if let Err(e) = connection.send_message(Box::new(message)).await {
-          println!("Error sending message: {:?}", e);
-        }
-      });
-      Ok(())
-    }
+    let mut connection = connection.write().unwrap();
+    connection.state = ConnectionState::Closed;
+    let message = proto::api::DisconnectResponse::default();
+    let connection = connection.clone();
+    tokio::spawn(async move {
+      if let Err(e) = connection.send_message(Box::new(message)).await {
+        println!("Error sending message: {:?}", e);
+      }
+    });
+    Ok(())
+  }
 
   fn handle_ping_request(connection: Arc<RwLock<Self>>, _: ProtobufMessage) -> Result<()> {
-      let connection = connection.read().unwrap();
-      let message = proto::api::PingResponse::default();
-      let connection = connection.clone();
-      tokio::spawn(async move {
-        if let Err(e) = connection.send_message(Box::new(message)).await {
-          println!("Error sending message: {:?}", e);
-        }
-      });
-      Ok(())
+    let connection = connection.read().unwrap();
+    let message = proto::api::PingResponse::default();
+    let connection = connection.clone();
+    tokio::spawn(async move {
+      if let Err(e) = connection.send_message(Box::new(message)).await {
+        println!("Error sending message: {:?}", e);
+      }
+    });
+    Ok(())
   }
 
   fn handle_get_time_request(connection: Arc<RwLock<Self>>, _: ProtobufMessage) -> Result<()> {
     let connection = connection.read().unwrap();
     let mut response = proto::api::GetTimeResponse::new();
-    response.epoch_seconds = SystemTime::now().duration_since(SystemTime::UNIX_EPOCH).unwrap().as_secs() as u32;
+    response.epoch_seconds = SystemTime::now()
+      .duration_since(SystemTime::UNIX_EPOCH)
+      .unwrap()
+      .as_secs() as u32;
     let connection = connection.clone();
     tokio::spawn(async move {
       if let Err(e) = connection.send_message(Box::new(response)).await {
