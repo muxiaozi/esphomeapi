@@ -6,7 +6,7 @@ use std::sync::{Arc, RwLock};
 use bytes::Bytes;
 pub use noise::Noise;
 pub use plain::Plain;
-use tokio::sync::oneshot;
+use tokio::sync::{mpsc, oneshot};
 use tokio_util::codec::{Decoder, Encoder};
 
 use crate::{Connection, Result as EspResult};
@@ -33,6 +33,12 @@ pub enum EspHomeMessageType {
     response_protobuf_type: u32,
     tx: oneshot::Sender<ProtobufMessage>,
   },
+  RequestWithAwaitMultipleUntil {
+    protobuf_message: ProtobufMessage,
+    response_protobuf_types: Vec<u32>,
+    until_protobuf_type: u32,
+    tx: mpsc::Sender<ProtobufMessage>,
+  },
 }
 
 impl std::fmt::Debug for EspHomeMessageType {
@@ -55,6 +61,13 @@ impl std::fmt::Debug for EspHomeMessageType {
         .field("protobuf_type", &protobuf_message.protobuf_type)
         .field("protobuf_data", &protobuf_message.protobuf_data)
         .finish(),
+      EspHomeMessageType::RequestWithAwaitMultipleUntil {
+        protobuf_message, ..
+      } => f
+        .debug_struct("RequestWithAwaitMultipleUntil")
+        .field("protobuf_type", &protobuf_message.protobuf_type)
+        .field("protobuf_data", &protobuf_message.protobuf_data)
+        .finish(),
     }
   }
 }
@@ -72,6 +85,9 @@ impl EspHomeMessage {
       EspHomeMessageType::Response { protobuf_message }
       | EspHomeMessageType::Request { protobuf_message }
       | EspHomeMessageType::RequestWithAwait {
+        protobuf_message, ..
+      }
+      | EspHomeMessageType::RequestWithAwaitMultipleUntil {
         protobuf_message, ..
       } => protobuf_message,
     }
@@ -113,6 +129,26 @@ impl EspHomeMessage {
           protobuf_data,
         },
         response_protobuf_type,
+        tx,
+      },
+    }
+  }
+
+  pub fn new_request_with_await_multiple_until(
+    protobuf_type: u32,
+    protobuf_data: Vec<u8>,
+    response_protobuf_types: Vec<u32>,
+    until_protobuf_type: u32,
+    tx: mpsc::Sender<ProtobufMessage>,
+  ) -> Self {
+    EspHomeMessage {
+      message_type: EspHomeMessageType::RequestWithAwaitMultipleUntil {
+        protobuf_message: ProtobufMessage {
+          protobuf_type,
+          protobuf_data,
+        },
+        response_protobuf_types,
+        until_protobuf_type,
         tx,
       },
     }

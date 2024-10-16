@@ -255,6 +255,76 @@ impl Connection {
               }
             }
           }
+          codec::EspHomeMessageType::RequestWithAwaitMultipleUntil {
+            protobuf_message,
+            response_protobuf_types,
+            until_protobuf_type,
+            tx: mpsc_tx,
+          } => {
+            println!(
+              "Sending RequestWithAwaitMultipleUntil message {}",
+              protobuf_message.protobuf_type
+            );
+            writer
+              .send(EspHomeMessage::new_request(
+                protobuf_message.protobuf_type,
+                protobuf_message.protobuf_data,
+              ))
+              .await
+              .unwrap();
+            while let Some(message) = rx.recv().await {
+              match message.message_type {
+                codec::EspHomeMessageType::Response { protobuf_message } => {
+                  if response_protobuf_types.contains(&protobuf_message.protobuf_type) {
+                    println!(
+                      "Received Response for RequestWithAwaitMultipleUntil: {:?}",
+                      protobuf_message
+                    );
+
+                    if let Err(_) = mpsc_tx.send(protobuf_message.clone()).await {
+                      println!("Error sending response to mpsc channel");
+                    }
+
+                    if let Some(handlers) = message_handlers
+                      .write()
+                      .unwrap()
+                      .get_mut(&protobuf_message.protobuf_type)
+                    {
+                      handlers.retain(|(remove_after_call, callback)| {
+                        // Call the handler function with the message
+                        let _ = callback(
+                          connection.clone(),
+                          ProtobufMessage {
+                            protobuf_type: protobuf_message.protobuf_type,
+                            protobuf_data: protobuf_message.protobuf_data.clone(),
+                          },
+                        );
+                        !*remove_after_call
+                      });
+                    }
+                  } else if protobuf_message.protobuf_type == until_protobuf_type {
+                    println!(
+                      "Received until Response for RequestWithAwaitMultipleUntil: {:?}",
+                      protobuf_message
+                    );
+                    break;
+                  } else {
+                    println!(
+                      "Received ummatched Response for RequestWithAwaitMultipleUntil: {:?}",
+                      protobuf_message
+                    );
+                    tx.send(EspHomeMessage::new_response(
+                      protobuf_message.protobuf_type,
+                      protobuf_message.protobuf_data,
+                    ))
+                    .await
+                    .unwrap();
+                  }
+                }
+                _ => {}
+              }
+            }
+          }
         }
       }
     });
@@ -414,6 +484,43 @@ impl Connection {
         }
       }
     }
+    Ok(responses)
+  }
+
+  pub async fn send_message_await_until(
+    &self,
+    message: Box<dyn protobuf::MessageDyn>,
+    response_protobuf_types: Vec<u32>,
+    until_protobuf_type: u32,
+    timeout_duration: Duration,
+  ) -> Result<Vec<ProtobufMessage>> {
+    let tx = self.channel_tx.clone().unwrap();
+
+    let protobuf_type = message
+      .descriptor_dyn()
+      .proto()
+      .options
+      .as_ref()
+      .and_then(|options| proto::api_options::exts::id.get(options))
+      .unwrap();
+    let protobuf_data = message.write_to_bytes_dyn().unwrap();
+    let (mpsc_tx, mut mpsc_rx) = tokio::sync::mpsc::channel(32);
+    let request_message = EspHomeMessage::new_request_with_await_multiple_until(
+      protobuf_type,
+      protobuf_data,
+      response_protobuf_types,
+      until_protobuf_type,
+      mpsc_tx,
+    );
+
+    tx.send(request_message).await?;
+
+    let mut responses = Vec::new();
+
+    while let Ok(Some(message)) = timeout(timeout_duration, mpsc_rx.recv()).await {
+      responses.push(message);
+    }
+
     Ok(responses)
   }
 

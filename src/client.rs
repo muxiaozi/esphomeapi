@@ -54,4 +54,22 @@ impl Client {
     println!("Device info: {:?}", response);
     Ok(())
   }
+
+  pub async fn list_entities_services(&mut self) -> Result<()> {
+    let message = proto::api::ListEntitiesRequest::default();
+    let response = self
+      .connection
+      .send_message_await_until(
+        Box::new(message),
+        proto::api::ListEntitiesDoneResponse::get_option_id(),
+      )
+      .await?;
+    println!("Received list entities services response");
+
+    let response =
+      proto::api::ListEntitiesServicesResponse::parse_from_bytes(&response.protobuf_data)?;
+
+    println!("List entities services: {:?}", response);
+    Ok(())
+  }
 }
