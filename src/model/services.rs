@@ -16,6 +16,7 @@ impl APIVersion {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BluetoothProxyFeature {
   PassiveScan = 1 << 0,
   ActiveConnections = 1 << 1,
@@ -25,10 +26,12 @@ pub enum BluetoothProxyFeature {
   RawAdvertisements = 1 << 5,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BluetoothProxySubscriptionFlag {
   RawAdvertisements = 1 << 0,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VoiceAssistantFeature {
   VoiceAssistant = 1 << 0,
   Speaker = 1 << 1,
@@ -37,10 +40,12 @@ pub enum VoiceAssistantFeature {
   Announce = 1 << 4,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VoiceAssistantSubscriptionFlag {
   APIAudio = 1 << 0,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DeviceInfo {
   pub uses_password: bool,
   pub name: String,
@@ -122,6 +127,7 @@ impl DeviceInfo {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum EntityCategory {
   None = 0,
   Config,
@@ -138,6 +144,7 @@ impl From<proto::api::EntityCategory> for EntityCategory {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EntityInfo {
   pub object_id: String,
   pub key: u32,
@@ -148,17 +155,20 @@ pub struct EntityInfo {
   pub enitity_category: EntityCategory,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EntityState {
-  pub key: u8,
+  pub key: u32,
 }
 
 // ==================== BINARY SENSOR ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinarySensorInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
   pub is_status_binary_sensor: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinarySensorState {
   pub entity_state: EntityState,
   pub state: bool,
@@ -167,6 +177,7 @@ pub struct BinarySensorState {
 
 // ==================== COVER ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoverInfo {
   pub entity_info: EntityInfo,
   pub assumed_state: bool,
@@ -176,56 +187,89 @@ pub struct CoverInfo {
   pub device_class: String,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LegacyCoverState {
   Open = 0,
   Closed,
 }
 
+impl From<proto::api::LegacyCoverState> for LegacyCoverState {
+  fn from(value: proto::api::LegacyCoverState) -> Self {
+    match value {
+      proto::api::LegacyCoverState::LEGACY_COVER_STATE_OPEN => LegacyCoverState::Open,
+      proto::api::LegacyCoverState::LEGACY_COVER_STATE_CLOSED => LegacyCoverState::Closed,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LegacyCoverCommand {
   Open = 0,
   Close,
   Stop,
 }
 
+impl From<proto::api::LegacyCoverCommand> for LegacyCoverCommand {
+  fn from(value: proto::api::LegacyCoverCommand) -> Self {
+    match value {
+      proto::api::LegacyCoverCommand::LEGACY_COVER_COMMAND_OPEN => LegacyCoverCommand::Open,
+      proto::api::LegacyCoverCommand::LEGACY_COVER_COMMAND_CLOSE => LegacyCoverCommand::Close,
+      proto::api::LegacyCoverCommand::LEGACY_COVER_COMMAND_STOP => LegacyCoverCommand::Stop,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CoverOperation {
   Idle = 0,
   Opening,
   Closing,
 }
 
+impl From<proto::api::CoverOperation> for CoverOperation {
+  fn from(value: proto::api::CoverOperation) -> Self {
+    match value {
+      proto::api::CoverOperation::COVER_OPERATION_IDLE => CoverOperation::Idle,
+      proto::api::CoverOperation::COVER_OPERATION_IS_OPENING => CoverOperation::Opening,
+      proto::api::CoverOperation::COVER_OPERATION_IS_CLOSING => CoverOperation::Closing,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct CoverState {
   pub entity_state: EntityState,
-  pub legacy_state: Option<LegacyCoverState>,
+  pub legacy_state: LegacyCoverState,
   pub position: f32,
   pub tilt: f32,
-  pub current_operation: Option<CoverOperation>,
+  pub current_operation: CoverOperation,
 }
 
 impl CoverState {
   pub fn is_closed(&self, api_version: APIVersion) -> bool {
     if api_version < APIVersion::new(1, 1) {
-      if let Some(legacy_state) = self.legacy_state {
-        return legacy_state == LegacyCoverState::Closed;
-      }
+      return self.legacy_state == LegacyCoverState::Closed;
     }
     return self.position == 0.0;
   }
 }
 
 // ==================== EVENT ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EventInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
   pub event_types: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Event {
   pub entity_state: EntityState,
   pub event_type: String,
 }
 
 // ==================== FAN ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FanInfo {
   pub entity_info: EntityInfo,
   pub supports_oscillation: bool,
@@ -235,23 +279,45 @@ pub struct FanInfo {
   pub supported_preset_modes: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FanSpeed {
   Low = 0,
   Medium,
   High,
 }
 
+impl From<proto::api::FanSpeed> for FanSpeed {
+  fn from(value: proto::api::FanSpeed) -> Self {
+    match value {
+      proto::api::FanSpeed::FAN_SPEED_LOW => FanSpeed::Low,
+      proto::api::FanSpeed::FAN_SPEED_MEDIUM => FanSpeed::Medium,
+      proto::api::FanSpeed::FAN_SPEED_HIGH => FanSpeed::High,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum FanDirection {
   Forward = 0,
   Reverse,
 }
 
+impl From<proto::api::FanDirection> for FanDirection {
+  fn from(value: proto::api::FanDirection) -> Self {
+    match value {
+      proto::api::FanDirection::FAN_DIRECTION_FORWARD => FanDirection::Forward,
+      proto::api::FanDirection::FAN_DIRECTION_REVERSE => FanDirection::Reverse,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FanState {
   pub entity_state: EntityState,
   pub oscillating: bool,
-  pub speed: Option<FanSpeed>,
-  pub speed_level: u8,
-  pub direction: Option<FanDirection>,
+  pub speed: FanSpeed,
+  pub speed_level: i32,
+  pub direction: FanDirection,
   pub preset_mode: String,
 }
 
@@ -305,6 +371,7 @@ impl Into<u8> for ColorMode {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct LightInfo {
   pub entity_info: EntityInfo,
   pub supported_color_modes: Vec<ColorMode>,
@@ -372,11 +439,12 @@ impl LightInfo {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct LightState {
   pub entity_state: EntityState,
   pub state: bool,
   pub brightness: f32,
-  pub color_mode: u8,
+  pub color_mode: ColorMode,
   pub color_brightness: f32,
   pub red: f32,
   pub green: f32,
@@ -390,6 +458,7 @@ pub struct LightState {
 
 // ==================== SENSOR ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum SensorStateClass {
   None = 0,
   Measurement,
@@ -410,6 +479,7 @@ impl From<proto::api::SensorStateClass> for SensorStateClass {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LastResetType {
   None = 0,
   Never,
@@ -426,6 +496,7 @@ impl From<proto::api::SensorLastResetType> for LastResetType {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SensorInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
@@ -436,6 +507,7 @@ pub struct SensorInfo {
   pub legacy_last_reset_type: LastResetType,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct SensorState {
   pub entity_state: EntityState,
   pub state: f32,
@@ -443,23 +515,27 @@ pub struct SensorState {
 }
 
 // ==================== SWITCH ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SwitchInfo {
   pub entity_info: EntityInfo,
   pub assumed_state: bool,
   pub device_class: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SwitchState {
   pub entity_state: EntityState,
   pub state: bool,
 }
 
 // ==================== TEXT SENSOR ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextSensorInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextSensorState {
   pub entity_state: EntityState,
   pub state: String,
@@ -467,10 +543,12 @@ pub struct TextSensorState {
 }
 
 // ==================== CAMERA ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CameraInfo {
   pub entity_info: EntityInfo,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CameraState {
   pub entity_state: EntityState,
   pub data: Vec<u8>,
@@ -478,7 +556,7 @@ pub struct CameraState {
 
 // ==================== CLIMATE ====================
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ClimateMode {
   Off = 0,
   HeatCool,
@@ -503,6 +581,7 @@ impl From<proto::api::ClimateMode> for ClimateMode {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ClimateFanMode {
   On = 0,
   Off,
@@ -533,6 +612,7 @@ impl From<proto::api::ClimateFanMode> for ClimateFanMode {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ClimateSwingMode {
   Off = 0,
   Both,
@@ -551,6 +631,7 @@ impl From<proto::api::ClimateSwingMode> for ClimateSwingMode {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ClimateAction {
   Off = 0,
   Cooling,
@@ -600,6 +681,7 @@ impl From<proto::api::ClimatePreset> for ClimatePreset {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct ClimateInfo {
   pub entity_info: EntityInfo,
   pub supports_current_temperature: bool,
@@ -634,31 +716,32 @@ impl ClimateInfo {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct ClimateState {
   pub entity_state: EntityState,
-  pub mode: Option<ClimateMode>,
-  pub action: Option<ClimateAction>,
+  pub mode: ClimateMode,
+  pub action: ClimateAction,
   pub current_temperature: f32,
   pub target_temperature: f32,
   pub target_temperature_low: f32,
   pub target_temperature_high: f32,
   pub legacy_away: bool,
-  pub fan_mode: Option<ClimateFanMode>,
-  pub swing_mode: Option<ClimateSwingMode>,
+  pub fan_mode: ClimateFanMode,
+  pub swing_mode: ClimateSwingMode,
   pub custom_fan_mode: String,
-  pub preset: Option<ClimatePreset>,
+  pub preset: ClimatePreset,
   pub custom_preset: String,
   pub current_humidity: f32,
   pub target_humidity: f32,
 }
 
 impl ClimateState {
-  pub fn preset_compat(&self, api_version: APIVersion) -> Option<ClimatePreset> {
+  pub fn preset_compat(&self, api_version: APIVersion) -> ClimatePreset {
     if api_version < APIVersion::new(1, 5) {
       if self.legacy_away {
-        return Some(ClimatePreset::Away);
+        return ClimatePreset::Away;
       }
-      return Some(ClimatePreset::Home);
+      return ClimatePreset::Home;
     }
     return self.preset;
   }
@@ -666,6 +749,7 @@ impl ClimateState {
 
 // ==================== NUMBER ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum NumberMode {
   Auto = 0,
   Box,
@@ -682,6 +766,7 @@ impl From<proto::api::NumberMode> for NumberMode {
   }
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct NumberInfo {
   pub entity_info: EntityInfo,
   pub min_value: f32,
@@ -692,6 +777,7 @@ pub struct NumberInfo {
   pub device_class: String,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct NumberState {
   pub entity_state: EntityState,
   pub state: f32,
@@ -700,37 +786,43 @@ pub struct NumberState {
 
 // ==================== DATETIME DATE ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateInfo {
   pub entity_info: EntityInfo,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateState {
   pub entity_state: EntityState,
   pub missing_state: bool,
-  pub year: u16,
-  pub month: u8,
-  pub day: u8,
+  pub year: u32,
+  pub month: u32,
+  pub day: u32,
 }
 
 // ==================== DATETIME TIME ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeInfo {
   pub entity_info: EntityInfo,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeState {
   pub entity_state: EntityState,
   pub missing_state: bool,
-  pub hour: u8,
-  pub minute: u8,
-  pub second: u8,
+  pub hour: u32,
+  pub minute: u32,
+  pub second: u32,
 }
 
 // ==================== DATETIME DATETIME ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateTimeInfo {
   pub entity_info: EntityInfo,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateTimeState {
   pub entity_state: EntityState,
   pub missing_state: bool,
@@ -739,11 +831,13 @@ pub struct DateTimeState {
 
 // ==================== SELECT ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SelectInfo {
   pub entity_info: EntityInfo,
   pub options: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SelectState {
   pub entity_state: EntityState,
   pub state: String,
@@ -752,6 +846,7 @@ pub struct SelectState {
 
 // ==================== SIREN ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SirenInfo {
   pub entity_info: EntityInfo,
   pub tones: Vec<String>,
@@ -759,6 +854,7 @@ pub struct SirenInfo {
   pub supports_duration: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SirenState {
   pub entity_state: EntityState,
   pub state: bool,
@@ -766,6 +862,7 @@ pub struct SirenState {
 
 // ==================== BUTTON ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ButtonInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
@@ -773,6 +870,7 @@ pub struct ButtonInfo {
 
 // ==================== LOCK ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LockState {
   None = 0,
   Locked,
@@ -782,12 +880,37 @@ pub enum LockState {
   Unlocking,
 }
 
+impl From<proto::api::LockState> for LockState {
+  fn from(value: proto::api::LockState) -> Self {
+    match value {
+      proto::api::LockState::LOCK_STATE_NONE => LockState::None,
+      proto::api::LockState::LOCK_STATE_LOCKED => LockState::Locked,
+      proto::api::LockState::LOCK_STATE_UNLOCKED => LockState::Unlocked,
+      proto::api::LockState::LOCK_STATE_JAMMED => LockState::Jammed,
+      proto::api::LockState::LOCK_STATE_LOCKING => LockState::Locking,
+      proto::api::LockState::LOCK_STATE_UNLOCKING => LockState::Unlocking,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LockCommand {
   Unlock = 0,
   Lock,
   Open,
 }
 
+impl From<proto::api::LockCommand> for LockCommand {
+  fn from(value: proto::api::LockCommand) -> Self {
+    match value {
+      proto::api::LockCommand::LOCK_UNLOCK => LockCommand::Unlock,
+      proto::api::LockCommand::LOCK_LOCK => LockCommand::Lock,
+      proto::api::LockCommand::LOCK_OPEN => LockCommand::Open,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LockInfo {
   pub entity_info: EntityInfo,
   pub supports_open: bool,
@@ -797,13 +920,15 @@ pub struct LockInfo {
   pub code_format: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LockEntityState {
   pub entity_state: EntityState,
-  pub state: Option<LockState>,
+  pub state: LockState,
 }
 
 // ==================== VALVE ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValveInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
@@ -812,20 +937,33 @@ pub struct ValveInfo {
   pub supports_position: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ValveOperation {
   Idle = 0,
   Opening,
   Closing,
 }
 
+impl From<proto::api::ValveOperation> for ValveOperation {
+  fn from(value: proto::api::ValveOperation) -> Self {
+    match value {
+      proto::api::ValveOperation::VALVE_OPERATION_IDLE => ValveOperation::Idle,
+      proto::api::ValveOperation::VALVE_OPERATION_IS_OPENING => ValveOperation::Opening,
+      proto::api::ValveOperation::VALVE_OPERATION_IS_CLOSING => ValveOperation::Closing,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq)]
 pub struct ValveState {
   pub entity_state: EntityState,
   pub position: f32,
-  pub current_operation: Option<ValveOperation>,
+  pub current_operation: ValveOperation,
 }
 
 // ==================== MEDIA PLAYER ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MediaPlayerState {
   None = 0,
   Idle,
@@ -833,6 +971,18 @@ pub enum MediaPlayerState {
   Paused,
 }
 
+impl From<proto::api::MediaPlayerState> for MediaPlayerState {
+  fn from(value: proto::api::MediaPlayerState) -> Self {
+    match value {
+      proto::api::MediaPlayerState::MEDIA_PLAYER_STATE_NONE => MediaPlayerState::None,
+      proto::api::MediaPlayerState::MEDIA_PLAYER_STATE_IDLE => MediaPlayerState::Idle,
+      proto::api::MediaPlayerState::MEDIA_PLAYER_STATE_PLAYING => MediaPlayerState::Playing,
+      proto::api::MediaPlayerState::MEDIA_PLAYER_STATE_PAUSED => MediaPlayerState::Paused,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MediaPlayerCommand {
   Play = 0,
   Pause,
@@ -841,6 +991,19 @@ pub enum MediaPlayerCommand {
   Unmute,
 }
 
+impl From<proto::api::MediaPlayerCommand> for MediaPlayerCommand {
+  fn from(value: proto::api::MediaPlayerCommand) -> Self {
+    match value {
+      proto::api::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_PLAY => MediaPlayerCommand::Play,
+      proto::api::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_PAUSE => MediaPlayerCommand::Pause,
+      proto::api::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_STOP => MediaPlayerCommand::Stop,
+      proto::api::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_MUTE => MediaPlayerCommand::Mute,
+      proto::api::MediaPlayerCommand::MEDIA_PLAYER_COMMAND_UNMUTE => MediaPlayerCommand::Unmute,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum MediaPlayerFormatPurpose {
   Default = 0,
   Announcement,
@@ -850,24 +1013,27 @@ pub enum MediaPlayerFormatPurpose {
 //   format: String,
 //   sample_rate: u32,
 //   num_channels: u8,
-//   purpose: Option<MediaPlayerFormatPurpose>,
+//   purpose: MediaPlayerFormatPurpose,
 //   sample_bytes: u8,
 // }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MediaPlayerInfo {
   pub entity_info: EntityInfo,
   pub supports_pause: bool,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct MediaPlayerEntityState {
   pub entity_state: EntityState,
-  pub state: Option<MediaPlayerState>,
+  pub state: MediaPlayerState,
   pub volume: f32,
   pub muted: bool,
 }
 
 // ==================== ALARM CONTROL PANEL ====================
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AlarmControlPanelState {
   Disarmed = 0,
   ArmedHome,
@@ -881,6 +1047,38 @@ pub enum AlarmControlPanelState {
   Triggered,
 }
 
+impl From<proto::api::AlarmControlPanelState> for AlarmControlPanelState {
+  fn from(value: proto::api::AlarmControlPanelState) -> Self {
+    match value {
+      crate::api::AlarmControlPanelState::ALARM_STATE_DISARMED => AlarmControlPanelState::Disarmed,
+      crate::api::AlarmControlPanelState::ALARM_STATE_ARMED_HOME => {
+        AlarmControlPanelState::ArmedHome
+      }
+      crate::api::AlarmControlPanelState::ALARM_STATE_ARMED_AWAY => {
+        AlarmControlPanelState::ArmedAway
+      }
+      crate::api::AlarmControlPanelState::ALARM_STATE_ARMED_NIGHT => {
+        AlarmControlPanelState::ArmedNight
+      }
+      crate::api::AlarmControlPanelState::ALARM_STATE_ARMED_VACATION => {
+        AlarmControlPanelState::ArmedVacation
+      }
+      crate::api::AlarmControlPanelState::ALARM_STATE_ARMED_CUSTOM_BYPASS => {
+        AlarmControlPanelState::ArmedCustomBypass
+      }
+      crate::api::AlarmControlPanelState::ALARM_STATE_PENDING => AlarmControlPanelState::Pending,
+      crate::api::AlarmControlPanelState::ALARM_STATE_ARMING => AlarmControlPanelState::Arming,
+      crate::api::AlarmControlPanelState::ALARM_STATE_DISARMING => {
+        AlarmControlPanelState::Disarming
+      }
+      crate::api::AlarmControlPanelState::ALARM_STATE_TRIGGERED => {
+        AlarmControlPanelState::Triggered
+      }
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum AlarmControlPanelCommand {
   Disarm = 0,
   ArmHome,
@@ -891,6 +1089,35 @@ pub enum AlarmControlPanelCommand {
   Trigger,
 }
 
+impl From<proto::api::AlarmControlPanelStateCommand> for AlarmControlPanelCommand {
+  fn from(value: proto::api::AlarmControlPanelStateCommand) -> Self {
+    match value {
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_DISARM => {
+        AlarmControlPanelCommand::Disarm
+      }
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_ARM_HOME => {
+        AlarmControlPanelCommand::ArmHome
+      }
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_ARM_AWAY => {
+        AlarmControlPanelCommand::ArmAway
+      }
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_ARM_NIGHT => {
+        AlarmControlPanelCommand::ArmNight
+      }
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_ARM_VACATION => {
+        AlarmControlPanelCommand::ArmVacation
+      }
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_ARM_CUSTOM_BYPASS => {
+        AlarmControlPanelCommand::ArmCustomBypass
+      }
+      crate::api::AlarmControlPanelStateCommand::ALARM_CONTROL_PANEL_TRIGGER => {
+        AlarmControlPanelCommand::Trigger
+      }
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AlarmControlPanelInfo {
   pub entity_info: EntityInfo,
   pub supported_features: u32,
@@ -898,12 +1125,14 @@ pub struct AlarmControlPanelInfo {
   pub requires_code_to_arm: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AlarmControlPanelEntityState {
   pub entity_state: EntityState,
-  pub state: Option<AlarmControlPanelState>,
+  pub state: AlarmControlPanelState,
 }
 
 // ==================== TEXT ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum TextMode {
   Text = 0,
   Password,
@@ -918,6 +1147,7 @@ impl From<proto::api::TextMode> for TextMode {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextInfo {
   pub entity_info: EntityInfo,
   pub min_length: u32,
@@ -926,6 +1156,7 @@ pub struct TextInfo {
   pub mode: TextMode,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextState {
   pub entity_state: EntityState,
   pub state: String,
@@ -933,17 +1164,20 @@ pub struct TextState {
 }
 
 // ==================== UPDATE ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UpdateCommand {
   None = 0,
   Install,
   Check,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateInfo {
   pub entity_info: EntityInfo,
   pub device_class: String,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct UpdateState {
   pub entity_state: EntityState,
   pub missing_state: bool,
@@ -958,6 +1192,7 @@ pub struct UpdateState {
 }
 
 // ==================== USER-DEFINED SERVICES ====================
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct HomeassistantServiceCall {
   pub service: String,
   pub is_event: bool,
@@ -966,6 +1201,7 @@ pub struct HomeassistantServiceCall {
   pub variables: HashMap<String, String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum UserServiceArgType {
   Bool = 0,
   Int,
@@ -977,14 +1213,31 @@ pub enum UserServiceArgType {
   StringArray,
 }
 
+impl From<proto::api::ServiceArgType> for UserServiceArgType {
+  fn from(value: proto::api::ServiceArgType) -> Self {
+    match value {
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_BOOL => UserServiceArgType::Bool,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_INT => UserServiceArgType::Int,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_FLOAT => UserServiceArgType::Float,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_STRING => UserServiceArgType::String,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_BOOL_ARRAY => UserServiceArgType::BoolArray,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_INT_ARRAY => UserServiceArgType::IntArray,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_FLOAT_ARRAY => UserServiceArgType::FloatArray,
+      proto::api::ServiceArgType::SERVICE_ARG_TYPE_STRING_ARRAY => UserServiceArgType::StringArray,
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UserServiceArg {
   pub name: String,
   pub arg_type: UserServiceArgType,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UserService {
   pub name: String,
-  pub key: u8,
+  pub key: u32,
   pub args: Vec<UserServiceArg>,
 }
 
@@ -998,6 +1251,7 @@ pub fn uuid_convert(uuid: String) -> String {
   return uuid;
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothLEAdvertisement {
   pub address: u64,
   pub rssi: i32,
@@ -1077,6 +1331,7 @@ impl BluetoothLEAdvertisement {
   }
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothDeviceConnection {
   pub address: u64,
   pub connected: bool,
@@ -1084,35 +1339,41 @@ pub struct BluetoothDeviceConnection {
   pub error: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothDevicePairing {
   pub address: u64,
   pub paired: bool,
   pub error: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothDeviceUnpairing {
   pub address: u64,
   pub success: bool,
   pub error: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothDeviceClearCache {
   pub address: u64,
   pub success: bool,
   pub error: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothGATTRead {
   pub address: u64,
   pub handle: u16,
   pub data: Vec<u8>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothGATTDescriptor {
   pub uuid: String,
   pub handle: u16,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothGATTCharacteristic {
   pub uuid: String,
   pub handle: u16,
@@ -1120,33 +1381,39 @@ pub struct BluetoothGATTCharacteristic {
   pub descriptors: Vec<BluetoothGATTDescriptor>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothGATTService {
   pub uuid: String,
   pub handle: u16,
   pub characteristics: Vec<BluetoothGATTCharacteristic>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothGATTServices {
   pub address: u64,
   pub services: Vec<BluetoothGATTService>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ESPHomeBluetoothGATTServices {
   pub address: u64,
   pub services: Vec<BluetoothGATTService>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothConnectionsFree {
   pub free: u8,
   pub limit: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BluetoothGATTError {
   pub address: u64,
   pub handle: u16,
   pub error: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum BluetoothDeviceRequestType {
   Connect = 0,
   Disconnect,
@@ -1157,17 +1424,20 @@ pub enum BluetoothDeviceRequestType {
   ClearCache,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VoiceAssistantCommandFlag {
   UseVAD = 1 << 0,
   UseWakeWord = 1 << 1,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct VoiceAssistantAudioSettings {
   pub noise_suppression_level: u8,
   pub auto_gain: u8,
   pub volume_multiplier: f32,
 }
 
+#[derive(Debug, Clone, PartialEq)]
 pub struct VoiceAssistantCommand {
   pub start: bool,
   pub conversation_id: String,
@@ -1176,33 +1446,40 @@ pub struct VoiceAssistantCommand {
   pub wake_word_phrase: String,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoiceAssistantAudioData {
   pub data: Vec<u8>,
   pub end: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoiceAssistantAnnounceFinished {
   pub success: bool,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoiceAssistantWakeWord {
   pub id: String,
   pub wake_word: String,
   pub trained_languages: Vec<String>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoiceAssistantConfigurationResponse {
   pub available_wake_words: Vec<VoiceAssistantWakeWord>,
   pub active_wake_words: Vec<String>,
   pub max_active_wake_words: u8,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoiceAssistantConfigurationRequest {}
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct VoiceAssistantSetConfiguration {
   pub active_wake_words: Vec<u8>,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum LogLevel {
   None = 0,
   Error,
@@ -1214,6 +1491,7 @@ pub enum LogLevel {
   VeryVerbose,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VoiceAssistantEventType {
   Error = 0,
   RunStart,
@@ -1232,6 +1510,7 @@ pub enum VoiceAssistantEventType {
   TTSStreamEnd = 99,
 }
 
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub enum VoiceAssistantTimerEventType {
   TimerStarted = 0,
   TimerUpdated,

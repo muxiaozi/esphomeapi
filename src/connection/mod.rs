@@ -22,7 +22,7 @@ use tokio::{
 use tokio_stream::StreamExt;
 use tokio_util::codec::{FramedRead, FramedWrite};
 
-use crate::{api, proto, Error, Result};
+use crate::{proto, Error, Result};
 
 use self::codec::FrameCodec;
 
@@ -137,16 +137,24 @@ impl Connection {
     // Reading messages from TCP stream and sending them to the mpsc channel
     tokio::spawn(async move {
       let tx = tx.clone();
-      while let Some(frame) = reader.next().await {
+      loop {
+        let frame = reader.next().await;
         match frame {
-          Ok(frame) => {
-            tx.send(frame).await.unwrap();
-          }
-          Err(e) => {
-            println!("Error reading frame: {:?}", e);
+          Some(frame) => match frame {
+            Ok(frame) => {
+              tx.send(frame).await.unwrap();
+            }
+            Err(e) => {
+              println!("Error reading frame: {:?}", e);
+            }
+          },
+          None => {
+            println!("Connection closed");
+            break;
           }
         }
       }
+      println!("Reader task finished");
     });
 
     let tx = self.channel_tx.clone().unwrap();
@@ -273,6 +281,7 @@ impl Connection {
               .await
               .unwrap();
             while let Some(message) = rx.recv().await {
+              println!("Received message: {:?}", message);
               match message.message_type {
                 codec::EspHomeMessageType::Response { protobuf_message } => {
                   if response_protobuf_types.contains(&protobuf_message.protobuf_type) {
@@ -414,7 +423,7 @@ impl Connection {
   }
 
   pub async fn send_messages(&self, messages: Vec<Box<dyn protobuf::MessageDyn>>) -> Result<()> {
-    let tx = self.channel_tx.clone().unwrap();
+    let channel_tx = self.channel_tx.clone().unwrap();
 
     for message in messages {
       let protobuf_type = message
@@ -427,7 +436,7 @@ impl Connection {
       let protobuf_data = message.write_to_bytes_dyn().unwrap();
       let request_message = EspHomeMessage::new_request(protobuf_type, protobuf_data);
 
-      match tx.send(request_message).await {
+      match channel_tx.send(request_message).await {
         Ok(_) => {}
         Err(e) => {
           return Err(format!("Error sending message: {:?}", e.0).into());
@@ -446,7 +455,7 @@ impl Connection {
       return Err("Number of response types must match number of messages".into());
     }
 
-    let mpsc_tx = self.channel_tx.clone().unwrap();
+    let channel_tx = self.channel_tx.clone().unwrap();
 
     let mut responses = Vec::new();
 
@@ -470,7 +479,7 @@ impl Connection {
         tx,
       );
 
-      mpsc_tx.send(request_message).await?;
+      channel_tx.send(request_message).await?;
 
       match timeout(Duration::from_secs(5), rx).await {
         Ok(Ok(message)) => {
@@ -494,7 +503,7 @@ impl Connection {
     until_protobuf_type: u32,
     timeout_duration: Duration,
   ) -> Result<Vec<ProtobufMessage>> {
-    let tx = self.channel_tx.clone().unwrap();
+    let channel_tx = self.channel_tx.clone().unwrap();
 
     let protobuf_type = message
       .descriptor_dyn()
@@ -504,20 +513,20 @@ impl Connection {
       .and_then(|options| proto::api_options::exts::id.get(options))
       .unwrap();
     let protobuf_data = message.write_to_bytes_dyn().unwrap();
-    let (mpsc_tx, mut mpsc_rx) = tokio::sync::mpsc::channel(32);
+    let (tx, mut rx) = tokio::sync::mpsc::channel(32);
     let request_message = EspHomeMessage::new_request_with_await_multiple_until(
       protobuf_type,
       protobuf_data,
       response_protobuf_types,
       until_protobuf_type,
-      mpsc_tx,
+      tx,
     );
 
-    tx.send(request_message).await?;
+    channel_tx.send(request_message).await?;
 
     let mut responses = Vec::new();
 
-    while let Ok(Some(message)) = timeout(timeout_duration, mpsc_rx.recv()).await {
+    while let Ok(Some(message)) = timeout(timeout_duration, rx.recv()).await {
       responses.push(message);
     }
 

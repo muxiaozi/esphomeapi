@@ -1,6 +1,9 @@
 use protobuf::Message;
 
-use crate::{connection::ProtobufMessage, utils::Options as _};
+use crate::{
+  model::{parse_user_service, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES},
+  utils::Options as _,
+};
 use std::time::Duration;
 
 use crate::{connection::Connection, proto, Result};
@@ -55,21 +58,44 @@ impl Client {
     Ok(())
   }
 
-  pub async fn list_entities_services(&mut self) -> Result<()> {
-    let message = proto::api::ListEntitiesRequest::default();
+  pub async fn list_entities_services(&mut self) -> Result<(Vec<EntityInfo>, Vec<UserService>)> {
+    let message = proto::api::ListEntitiesRequest::new();
+
+    let entity_service_map = LIST_ENTITIES_SERVICES_RESPONSE_TYPES.clone();
+    let response_protobuf_types: Vec<u32> = entity_service_map.keys().cloned().collect();
+
+    println!(
+      "Sending list entities services request: {:?}",
+      response_protobuf_types
+    );
+
     let response = self
       .connection
       .send_message_await_until(
         Box::new(message),
+        response_protobuf_types,
         proto::api::ListEntitiesDoneResponse::get_option_id(),
+        Duration::from_secs(60),
       )
       .await?;
     println!("Received list entities services response");
 
-    let response =
-      proto::api::ListEntitiesServicesResponse::parse_from_bytes(&response.protobuf_data)?;
+    let mut entities = Vec::new();
+    let mut services = Vec::new();
+    for message in response {
+      let parser = entity_service_map
+        .get(&message.protobuf_type)
+        .ok_or_else(|| format!("Unknown message type: {}", message.protobuf_type))?;
 
-    println!("List entities services: {:?}", response);
-    Ok(())
+      if let Some(parser) = parser {
+        let parsed_message = parser(&message.protobuf_data)?;
+        entities.push(parsed_message);
+      } else {
+        let parsed_service = parse_user_service(&message.protobuf_data)?;
+        services.push(parsed_service);
+      }
+    }
+
+    Ok((entities, services))
   }
 }
