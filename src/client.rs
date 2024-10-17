@@ -58,16 +58,13 @@ impl Client {
     Ok(())
   }
 
-  pub async fn list_entities_services(&mut self) -> Result<(Vec<EntityInfo>, Vec<UserService>)> {
+  pub async fn list_entities_services(&self) -> Result<(Vec<EntityInfo>, Vec<UserService>)> {
     let message = proto::api::ListEntitiesRequest::new();
 
     let entity_service_map = LIST_ENTITIES_SERVICES_RESPONSE_TYPES.clone();
-    let response_protobuf_types: Vec<u32> = entity_service_map.keys().cloned().collect();
-
-    println!(
-      "Sending list entities services request: {:?}",
-      response_protobuf_types
-    );
+    let mut response_protobuf_types: Vec<u32> = entity_service_map.keys().cloned().collect();
+    // Add user defined services to the list of expected responses
+    response_protobuf_types.push(proto::api::ListEntitiesServicesResponse::get_option_id());
 
     let response = self
       .connection
@@ -87,15 +84,26 @@ impl Client {
         .get(&message.protobuf_type)
         .ok_or_else(|| format!("Unknown message type: {}", message.protobuf_type))?;
 
-      if let Some(parser) = parser {
-        let parsed_message = parser(&message.protobuf_data)?;
-        entities.push(parsed_message);
-      } else {
+      if message.protobuf_type == proto::api::ListEntitiesServicesResponse::get_option_id() {
         let parsed_service = parse_user_service(&message.protobuf_data)?;
         services.push(parsed_service);
+      } else {
+        let parsed_message = parser(&message.protobuf_data)?;
+        entities.push(parsed_message);
       }
     }
 
     Ok((entities, services))
+  }
+
+  pub async fn switch_command(&self, key: u32, state: bool) -> Result<()> {
+    let message = proto::api::SwitchCommandRequest {
+      key,
+      state,
+      ..Default::default()
+    };
+
+    self.connection.send_message(Box::new(message)).await?;
+    Ok(())
   }
 }
