@@ -23,6 +23,7 @@ pub enum EntityState {
   Text(services::TextState),
   TextSensor(services::TextSensorState),
   Time(services::TimeState),
+  Update(services::UpdateState),
   Valve(services::ValveState),
 }
 
@@ -306,6 +307,27 @@ impl EntityState {
       minute: data.minute,
       second: data.second,
       missing_state: data.missing_state,
+    }))
+  }
+
+  pub fn parse_update(data: &[u8]) -> Result<Self> {
+    let data = api::UpdateStateResponse::parse_from_bytes(data)?;
+
+    let entity_state = services::EntityState {
+      key: data.key.clone(),
+    };
+
+    Ok(EntityState::Update(services::UpdateState {
+      entity_state,
+      current_version: data.current_version.clone(),
+      has_progress: data.has_progress,
+      in_progress: data.in_progress,
+      latest_version: data.latest_version.clone(),
+      missing_state: data.missing_state,
+      progress: data.progress,
+      release_summary: data.release_summary.clone(),
+      release_url: data.release_url.clone(),
+      title: data.title.clone(),
     }))
   }
 

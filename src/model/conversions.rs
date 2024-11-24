@@ -26,6 +26,7 @@ lazy_static::lazy_static! {
         m.insert(api::ListEntitiesTextResponse::get_option_id(), EntityInfo::parse_text);
         m.insert(api::ListEntitiesTextSensorResponse::get_option_id(), EntityInfo::parse_text_sensor);
         m.insert(api::ListEntitiesTimeResponse::get_option_id(), EntityInfo::parse_time);
+        m.insert(api::ListEntitiesUpdateResponse::get_option_id(), EntityInfo::parse_update);
         m.insert(api::ListEntitiesValveResponse::get_option_id(), EntityInfo::parse_valve);
         m
     };
@@ -50,6 +51,7 @@ lazy_static::lazy_static! {
         m.insert(api::TextStateResponse::get_option_id(), EntityState::parse_text);
         m.insert(api::TextSensorStateResponse::get_option_id(), EntityState::parse_text_sensor);
         m.insert(api::TimeStateResponse::get_option_id(), EntityState::parse_time);
+        m.insert(api::UpdateStateResponse::get_option_id(), EntityState::parse_update);
         m.insert(api::ValveStateResponse::get_option_id(), EntityState::parse_valve);
         m
     };

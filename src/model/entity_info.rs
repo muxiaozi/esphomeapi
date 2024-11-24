@@ -25,6 +25,7 @@ pub enum EntityInfo {
   Text(services::TextInfo),
   TextSensor(services::TextSensorInfo),
   Time(services::TimeInfo),
+  Update(services::UpdateInfo),
   Valve(services::ValveInfo),
 }
 
@@ -325,6 +326,11 @@ impl EntityInfo {
     Ok(EntityInfo::MediaPlayer(services::MediaPlayerInfo {
       entity_info,
       supports_pause: data.supports_pause,
+      supported_formats: data
+        .supported_formats
+        .iter()
+        .map(|v| v.clone().into())
+        .collect(),
     }))
   }
 
@@ -470,6 +476,25 @@ impl EntityInfo {
     };
 
     Ok(EntityInfo::Time(services::TimeInfo { entity_info }))
+  }
+
+  pub fn parse_update(data: &[u8]) -> Result<Self> {
+    let data = api::ListEntitiesUpdateResponse::parse_from_bytes(data)?;
+
+    let entity_info = services::EntityInfo {
+      disabled_by_default: data.disabled_by_default,
+      enitity_category: data.entity_category.enum_value_or_default().into(),
+      object_id: data.object_id,
+      key: data.key,
+      name: data.name,
+      unique_id: data.unique_id,
+      icon: data.icon,
+    };
+
+    Ok(EntityInfo::Update(services::UpdateInfo {
+      entity_info,
+      device_class: data.device_class.clone(),
+    }))
   }
 
   pub fn parse_valve(data: &[u8]) -> Result<Self> {

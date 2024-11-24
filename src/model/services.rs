@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use enumflags2::bitflags;
 
-use crate::proto;
+use crate::{api, proto};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct APIVersion {
@@ -1009,18 +1009,45 @@ pub enum MediaPlayerFormatPurpose {
   Announcement,
 }
 
-// struct MediaPlayerSupportedFormat {
-//   format: String,
-//   sample_rate: u32,
-//   num_channels: u8,
-//   purpose: MediaPlayerFormatPurpose,
-//   sample_bytes: u8,
-// }
+impl From<proto::api::MediaPlayerFormatPurpose> for MediaPlayerFormatPurpose {
+  fn from(value: proto::api::MediaPlayerFormatPurpose) -> Self {
+    match value {
+      api::MediaPlayerFormatPurpose::MEDIA_PLAYER_FORMAT_PURPOSE_DEFAULT => {
+        MediaPlayerFormatPurpose::Default
+      }
+      api::MediaPlayerFormatPurpose::MEDIA_PLAYER_FORMAT_PURPOSE_ANNOUNCEMENT => {
+        MediaPlayerFormatPurpose::Announcement
+      }
+    }
+  }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct MediaPlayerSupportedFormat {
+  format: String,
+  sample_rate: u32,
+  num_channels: u32,
+  purpose: MediaPlayerFormatPurpose,
+  sample_bytes: u32,
+}
+
+impl From<proto::api::MediaPlayerSupportedFormat> for MediaPlayerSupportedFormat {
+  fn from(value: proto::api::MediaPlayerSupportedFormat) -> Self {
+    MediaPlayerSupportedFormat {
+      format: value.format,
+      sample_rate: value.sample_rate,
+      num_channels: value.num_channels,
+      purpose: value.purpose.enum_value_or_default().into(),
+      sample_bytes: value.sample_bytes,
+    }
+  }
+}
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MediaPlayerInfo {
   pub entity_info: EntityInfo,
   pub supports_pause: bool,
+  pub supported_formats: Vec<MediaPlayerSupportedFormat>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
