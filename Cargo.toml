@@ -1,16 +1,15 @@
 [package]
-name = "esphomeapi-rs"
+name = "esphomeapi"
 version = "0.1.0"
 authors = ["Patrik Kovalovszky <kovapatrik@gmail.com>"]
 description = "Rust client for ESPHome native API"
 edition = "2021"
 
-
 [dependencies]
 base64 = "0.22.1"
 tokio = { version = "1.41.1", features = ["net", "sync", "io-util", "rt-multi-thread", "macros", "signal"] }
 tokio-util = { version = "0.7.11", features = ["codec"] }
-bytes = "1.8.0"
+bytes = "1.9.0"
 varuint = "0.7.1"
 tokio-stream = "0.1.15"
 noise-protocol = "0.2.0"
