@@ -42,10 +42,9 @@ impl Client {
     self.connection.connect(login).await
   }
 
-  pub async fn device_info(&mut self) -> Result<()> {
+  pub async fn device_info(&mut self) -> Result<proto::api::DeviceInfoResponse> {
     let message = proto::api::DeviceInfoRequest::default();
 
-    println!("Sending device info request");
     let response = self
       .connection
       .send_message_await_response(
@@ -53,12 +52,10 @@ impl Client {
         proto::api::DeviceInfoResponse::get_option_id(),
       )
       .await?;
-    println!("Received device info response");
 
     let response = proto::api::DeviceInfoResponse::parse_from_bytes(&response.protobuf_data)?;
 
-    println!("Device info: {:?}", response);
-    Ok(())
+    Ok(response)
   }
 
   pub async fn list_entities_services(&self) -> Result<(Vec<EntityInfo>, Vec<UserService>)> {
