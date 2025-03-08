@@ -1,8 +1,12 @@
 use std::collections::HashMap;
 
-use enumflags2::bitflags;
+use enumflags2::{bitflags, BitFlags};
+use napi_derive::napi;
 
-use crate::{api, proto};
+use crate::{
+  api::{self, DeviceInfoResponse},
+  proto,
+};
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct APIVersion {
@@ -16,7 +20,9 @@ impl APIVersion {
   }
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[bitflags]
+#[repr(u32)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum BluetoothProxyFeature {
   PassiveScan = 1 << 0,
   ActiveConnections = 1 << 1,
@@ -31,7 +37,9 @@ pub enum BluetoothProxySubscriptionFlag {
   RawAdvertisements = 1 << 0,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[bitflags]
+#[repr(u32)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy)]
 pub enum VoiceAssistantFeature {
   VoiceAssistant = 1 << 0,
   Speaker = 1 << 1,
@@ -46,6 +54,7 @@ pub enum VoiceAssistantSubscriptionFlag {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+#[napi]
 pub struct DeviceInfo {
   pub uses_password: bool,
   pub name: String,
@@ -58,16 +67,42 @@ pub struct DeviceInfo {
   pub esphome_version: String,
   pub project_name: String,
   pub project_version: String,
-  pub webserver_port: u16,
-  pub legacy_voice_assistant_version: u8,
-  pub voice_assistant_feature_flags: u8,
-  pub legacy_bluetooth_proxy_version: u8,
-  pub bluetooth_proxy_feature_flags: u8,
+  pub webserver_port: u32,
+  pub legacy_voice_assistant_version: u32,
+  pub voice_assistant_feature_flags: u32,
+  pub legacy_bluetooth_proxy_version: u32,
+  pub bluetooth_proxy_feature_flags: u32,
   pub suggested_area: String,
 }
 
+impl From<DeviceInfoResponse> for DeviceInfo {
+  fn from(proto: DeviceInfoResponse) -> Self {
+    DeviceInfo {
+      uses_password: proto.uses_password,
+      name: proto.name,
+      friendly_name: proto.friendly_name,
+      mac_address: proto.mac_address,
+      compilation_time: proto.compilation_time,
+      model: proto.model,
+      manufacturer: proto.manufacturer,
+      has_deep_sleep: proto.has_deep_sleep,
+      esphome_version: proto.esphome_version,
+      project_name: proto.project_name,
+      project_version: proto.project_version,
+      webserver_port: proto.webserver_port,
+      legacy_voice_assistant_version: proto.legacy_voice_assistant_version,
+      voice_assistant_feature_flags: proto.voice_assistant_feature_flags,
+      legacy_bluetooth_proxy_version: proto.legacy_bluetooth_proxy_version,
+      bluetooth_proxy_feature_flags: proto.bluetooth_proxy_feature_flags,
+      suggested_area: proto.suggested_area,
+    }
+  }
+}
+
+#[napi]
 impl DeviceInfo {
-  fn new() -> DeviceInfo {
+  #[napi(constructor)]
+  pub fn default() -> DeviceInfo {
     DeviceInfo {
       uses_password: false,
       name: String::new(),
@@ -89,39 +124,39 @@ impl DeviceInfo {
     }
   }
 
-  pub fn bluetooth_proxy_feature_flags_compat(&self, api_version: APIVersion) -> u8 {
+  pub fn bluetooth_proxy_feature_flags_compat(&self, api_version: APIVersion) -> u32 {
     if api_version < APIVersion::new(1, 9) {
-      let mut flags = 0;
+      let mut flags = BitFlags::empty();
       if self.legacy_bluetooth_proxy_version >= 1 {
-        flags |= BluetoothProxyFeature::PassiveScan as u8;
+        flags |= BluetoothProxyFeature::PassiveScan;
       }
       if self.legacy_bluetooth_proxy_version >= 2 {
-        flags |= BluetoothProxyFeature::ActiveConnections as u8;
+        flags |= BluetoothProxyFeature::ActiveConnections;
       }
       if self.legacy_bluetooth_proxy_version >= 3 {
-        flags |= BluetoothProxyFeature::RemoteCaching as u8;
+        flags |= BluetoothProxyFeature::RemoteCaching;
       }
       if self.legacy_bluetooth_proxy_version >= 4 {
-        flags |= BluetoothProxyFeature::Pairing as u8;
+        flags |= BluetoothProxyFeature::Pairing;
       }
       if self.legacy_bluetooth_proxy_version >= 5 {
-        flags |= BluetoothProxyFeature::CacheClearing as u8;
+        flags |= BluetoothProxyFeature::CacheClearing;
       }
-      return flags;
+      return flags.bits();
     }
     return self.bluetooth_proxy_feature_flags;
   }
 
-  pub fn voice_assistant_feature_flags_compat(&self, api_version: APIVersion) -> u8 {
+  pub fn voice_assistant_feature_flags_compat(&self, api_version: APIVersion) -> u32 {
     if api_version < APIVersion::new(1, 10) {
-      let mut flags = 0;
+      let mut flags = BitFlags::empty();
       if self.legacy_voice_assistant_version >= 1 {
-        flags |= VoiceAssistantFeature::VoiceAssistant as u8;
+        flags |= VoiceAssistantFeature::VoiceAssistant;
       }
       if self.legacy_voice_assistant_version >= 2 {
-        flags |= VoiceAssistantFeature::Speaker as u8;
+        flags |= VoiceAssistantFeature::Speaker;
       }
-      return flags;
+      return flags.bits();
     }
     return self.voice_assistant_feature_flags;
   }

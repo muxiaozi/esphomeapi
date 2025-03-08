@@ -1,6 +1,6 @@
 #![deny(clippy::all)]
 
-use esphomeapi::Client;
+use esphomeapi::{model::DeviceInfo, Client};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
@@ -44,7 +44,7 @@ impl JsClient {
   }
 
   #[napi]
-  pub async fn device_info(&self) -> Result<esphomeapi::api::DeviceInfoResponse> {
+  pub async fn device_info(&self) -> Result<DeviceInfo> {
     self
       .client
       .device_info()

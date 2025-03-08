@@ -2,7 +2,7 @@ use protobuf::Message;
 
 use crate::{
   model::{
-    parse_user_service, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
+    parse_user_service, DeviceInfo, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
     SUBCRIBE_STATES_RESPONSE_TYPES,
   },
   utils::Options as _,
@@ -42,7 +42,7 @@ impl Client {
     self.connection.connect(login).await
   }
 
-  pub async fn device_info(&self) -> Result<proto::api::DeviceInfoResponse> {
+  pub async fn device_info(&self) -> Result<DeviceInfo> {
     let message = proto::api::DeviceInfoRequest::default();
 
     let response = self
@@ -55,7 +55,7 @@ impl Client {
 
     let response = proto::api::DeviceInfoResponse::parse_from_bytes(&response.protobuf_data)?;
 
-    Ok(response)
+    Ok(response.into())
   }
 
   pub async fn list_entities_services(&self) -> Result<(Vec<EntityInfo>, Vec<UserService>)> {

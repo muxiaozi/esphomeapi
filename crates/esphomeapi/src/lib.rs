@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate napi_derive;
-
 mod proto {
   include!(concat!(env!("OUT_DIR"), "/protos/mod.rs"));
   // include!(concat!(env!("OUT_DIR"), "/protos.rs"));
@@ -10,7 +7,7 @@ pub use proto::api;
 
 mod client;
 mod connection;
-mod model;
+pub mod model;
 mod utils;
 
 pub use client::Client;
