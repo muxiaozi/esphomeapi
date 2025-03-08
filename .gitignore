@@ -25,3 +25,16 @@ Cargo.lock
 /src/bin
 
 .vscode
+.zed
+
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+*.node
+
+node_modules

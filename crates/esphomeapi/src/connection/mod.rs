@@ -50,7 +50,7 @@ pub struct Connection {
   codec: EspHomeCodec,
   state: ConnectionState,
   is_connected: bool,
-  keep_alive_duration: tokio::time::Duration,
+  keep_alive_duration: Duration,
   expected_name: Option<String>,
   client_info: String,
   message_handlers: Arc<RwLock<HashMap<u32, Vec<(bool, Callback)>>>>,
@@ -65,7 +65,7 @@ impl Connection {
     expected_name: Option<String>,
     psk: Option<String>,
     client_info: Option<String>,
-    keep_alive_duration: Option<Duration>,
+    keep_alive_duration: Option<u32>,
   ) -> Self {
     let codec = match psk {
       Some(psk) => EspHomeCodec::Noise(Arc::new(RwLock::new(Noise::new(
@@ -81,8 +81,12 @@ impl Connection {
       .messages()
       .for_each(|msg_descriptor| {
         if let Some(message_options) = msg_descriptor.proto().options.as_ref() {
-          let message_type = proto::api_options::exts::id.get(message_options).unwrap();
-          message_handlers.insert(message_type, Vec::new());
+          match proto::api_options::exts::id.get(message_options) {
+            Some(message_type) => {
+              message_handlers.insert(message_type, Vec::new());
+            }
+            None => {}
+          }
         }
       });
 
@@ -93,7 +97,7 @@ impl Connection {
       codec,
       state: ConnectionState::Initialized,
       is_connected: false,
-      keep_alive_duration: keep_alive_duration.unwrap_or(Duration::from_secs(20)),
+      keep_alive_duration: Duration::from_secs(keep_alive_duration.unwrap_or(20) as u64),
       expected_name,
       client_info: client_info.unwrap_or("esphome-rs".to_string()),
       message_handlers: Arc::new(RwLock::new(message_handlers)),
@@ -559,7 +563,7 @@ impl Connection {
     request
   }
 
-  fn keep_alive(&mut self, duration: tokio::time::Duration) -> JoinHandle<()> {
+  fn keep_alive(&mut self, duration: Duration) -> JoinHandle<()> {
     let tx = self.channel_tx.clone().unwrap();
     let (protobuf_type, request) = proto::api::PingRequest::create_message_with_type();
     let protobuf_data = request.write_to_bytes().unwrap();
