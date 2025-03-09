@@ -1,6 +1,7 @@
-#![deny(clippy::all)]
+mod model;
 
-use esphomeapi::{model::DeviceInfo, Client};
+use esphomeapi::Client;
+use model::JsDeviceInfo;
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
@@ -44,11 +45,12 @@ impl JsClient {
   }
 
   #[napi]
-  pub async fn device_info(&self) -> Result<DeviceInfo> {
+  pub async fn device_info(&self) -> Result<JsDeviceInfo> {
     self
       .client
       .device_info()
       .await
+      .map(|info| info.into())
       .map_err(|e| Error::new(Status::GenericFailure, e))
   }
   // #[napi]

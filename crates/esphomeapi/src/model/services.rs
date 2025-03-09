@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 
 use enumflags2::{bitflags, BitFlags};
-use napi_derive::napi;
 
 use crate::{
   api::{self, DeviceInfoResponse},
@@ -54,7 +53,6 @@ pub enum VoiceAssistantSubscriptionFlag {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-#[napi]
 pub struct DeviceInfo {
   pub uses_password: bool,
   pub name: String,
@@ -99,9 +97,7 @@ impl From<DeviceInfoResponse> for DeviceInfo {
   }
 }
 
-#[napi]
 impl DeviceInfo {
-  #[napi(constructor)]
   pub fn default() -> DeviceInfo {
     DeviceInfo {
       uses_password: false,

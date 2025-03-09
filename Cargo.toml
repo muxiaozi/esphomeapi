@@ -1,7 +1,3 @@
 [workspace]
 members = ["crates/esphomeapi", "crates/esphomeapi-node"]
 resolver = "2"
-
-[workspace.dependencies]
-napi = "3.0.0-alpha"
-napi-derive = "3.0.0-alpha"
