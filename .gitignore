@@ -38,3 +38,5 @@ Cargo.lock
 *.node
 
 node_modules
+
+.DS_Store
