@@ -15,11 +15,11 @@
     "node": ">= 10"
   },
   "scripts": {
-    "artifacts": "napi artifacts",
-    "build": "napi build --platform --release",
-    "build:debug": "napi build --platform",
-    "prepublishOnly": "napi prepublish -t npm",
-    "test": "ava",
-    "version": "napi version"
+    "artifacts": "pnpm exec napi artifacts",
+    "build": "pnpm exec napi build --platform --release --no-dts-cache",
+    "build:debug": "pnpm exec napi build --platform",
+    "prepublishOnly": "pnpm exec napi prepublish -t npm",
+    "test": "pnpm exec ava",
+    "version": "pnpm exec napi version"
   }
 }

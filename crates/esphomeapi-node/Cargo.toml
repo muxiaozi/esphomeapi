@@ -11,10 +11,5 @@ esphomeapi = { path = "../esphomeapi" }
 napi = { version = "3.0.0-alpha", features = ["tokio_rt"] }
 napi-derive = "3.0.0-alpha"
 
-
 [build-dependencies]
 napi-build = "2.1.5"
-
-[profile.release]
-lto = true
-codegen-units = 1
