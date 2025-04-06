@@ -35,7 +35,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -58,7 +58,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -78,7 +78,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -97,7 +97,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -113,7 +113,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -165,7 +165,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -188,7 +188,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -204,7 +204,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -220,7 +220,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -240,7 +240,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -263,7 +263,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -293,7 +293,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -315,7 +315,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -339,7 +339,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -363,7 +363,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -382,7 +382,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -406,7 +406,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -426,7 +426,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -448,7 +448,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -467,7 +467,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -483,7 +483,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -502,7 +502,7 @@ impl EntityInfo {
 
     let entity_info = services::EntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,

@@ -183,7 +183,7 @@ pub struct EntityInfo {
   pub unique_id: String,
   pub disabled_by_default: bool,
   pub icon: String,
-  pub enitity_category: EntityCategory,
+  pub entity_category: EntityCategory,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
