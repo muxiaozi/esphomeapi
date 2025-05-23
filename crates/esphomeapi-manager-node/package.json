@@ -1,0 +1,25 @@
+{
+  "name": "@kovapatrik/esphomeapi-manager",
+  "version": "0.1.0",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "napi": {
+    "name": "esphomeapi-manager",
+    "triples": {}
+  },
+  "license": "MIT",
+  "ava": {
+    "timeout": "3m"
+  },
+  "engines": {
+    "node": ">= 10"
+  },
+  "scripts": {
+    "artifacts": "pnpm exec napi artifacts",
+    "build": "pnpm exec napi build --platform --release --no-dts-cache",
+    "build:debug": "pnpm exec napi build --platform",
+    "prepublishOnly": "pnpm exec napi prepublish -t npm",
+    "test": "pnpm exec ava",
+    "version": "pnpm exec napi version"
+  }
+}

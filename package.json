@@ -1,0 +1,42 @@
+{
+  "name": "esphomeapi",
+  "packageManager": "pnpm@10.5.2",
+  "version": "0.0.0",
+  "description": "A Node.js native addon for ESPHome API",
+  "author": "Patrik Kovalovszky <kovapatrik@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "crates/*-node"
+  ],
+  "scripts": {
+    "artifacts": "pnpm -r run artifacts",
+    "build": "pnpm -r run build",
+    "build:debug": "pnpm -r run build:debug",
+    "build:ts": "tsc -b tsconfig.json -verbose",
+    "test": "ava",
+    "format": "run-p format:rs format:toml",
+    "format:rs": "cargo fmt --all"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "^3.0.0-alpha.72",
+    "@taplo/cli": "^0.7.0",
+    "ava": "^6.2.0",
+    "tslib": "^2.7.0",
+    "typescript": "^5.7.3"
+  },
+  "ava": {
+    "extensions": {
+      "ts": "module"
+    },
+    "nodeArguments": [
+      "--import",
+      "@oxc-node/core/register"
+    ],
+    "timeout": "1m",
+    "cache": false,
+    "files": [
+      "crates/*-node/__test__/**/*.spec.ts"
+    ]
+  }
+}

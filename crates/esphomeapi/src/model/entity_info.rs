@@ -30,12 +30,39 @@ pub enum EntityInfo {
 }
 
 impl EntityInfo {
+  pub fn key(&self) -> u32 {
+    match self {
+      EntityInfo::AlarmControlPanel(info) => info.entity_info.key,
+      EntityInfo::BinarySensor(info) => info.entity_info.key,
+      EntityInfo::Button(info) => info.entity_info.key,
+      EntityInfo::Camera(info) => info.entity_info.key,
+      EntityInfo::Climate(info) => info.entity_info.key,
+      EntityInfo::Cover(info) => info.entity_info.key,
+      EntityInfo::Date(info) => info.entity_info.key,
+      EntityInfo::DateTime(info) => info.entity_info.key,
+      EntityInfo::Event(info) => info.entity_info.key,
+      EntityInfo::Fan(info) => info.entity_info.key,
+      EntityInfo::Light(info) => info.entity_info.key,
+      EntityInfo::Lock(info) => info.entity_info.key,
+      EntityInfo::MediaPlayer(info) => info.entity_info.key,
+      EntityInfo::Number(info) => info.entity_info.key,
+      EntityInfo::Select(info) => info.entity_info.key,
+      EntityInfo::Sensor(info) => info.entity_info.key,
+      EntityInfo::Switch(info) => info.entity_info.key,
+      EntityInfo::Text(info) => info.entity_info.key,
+      EntityInfo::TextSensor(info) => info.entity_info.key,
+      EntityInfo::Time(info) => info.entity_info.key,
+      EntityInfo::Update(info) => info.entity_info.key,
+      EntityInfo::Valve(info) => info.entity_info.key,
+    }
+  }
+
   pub fn parse_alarm_control_panel(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesAlarmControlPanelResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -56,9 +83,9 @@ impl EntityInfo {
   pub fn parse_binary_sensor(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesBinarySensorResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -76,9 +103,9 @@ impl EntityInfo {
   pub fn parse_button(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesButtonResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -95,9 +122,9 @@ impl EntityInfo {
   pub fn parse_camera(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesCameraResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -111,9 +138,9 @@ impl EntityInfo {
   pub fn parse_climate(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesClimateResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -163,9 +190,9 @@ impl EntityInfo {
   pub fn parse_cover(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesCoverResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -186,9 +213,9 @@ impl EntityInfo {
   pub fn parse_date(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesDateResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -202,9 +229,9 @@ impl EntityInfo {
   pub fn parse_date_time(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesDateTimeResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -218,9 +245,9 @@ impl EntityInfo {
   pub fn parse_event(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesEventResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -238,9 +265,9 @@ impl EntityInfo {
   pub fn parse_fan(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesFanResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -261,9 +288,9 @@ impl EntityInfo {
   pub fn parse_light(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesLightResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -291,9 +318,9 @@ impl EntityInfo {
   pub fn parse_lock(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesLockResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -313,9 +340,9 @@ impl EntityInfo {
   pub fn parse_media_player(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesMediaPlayerResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -337,9 +364,9 @@ impl EntityInfo {
   pub fn parse_number(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesNumberResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -361,9 +388,9 @@ impl EntityInfo {
   pub fn parse_select(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesSelectResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -380,9 +407,9 @@ impl EntityInfo {
   pub fn parse_sensor(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesSensorResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -404,9 +431,9 @@ impl EntityInfo {
   pub fn parse_switch(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesSwitchResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -424,9 +451,9 @@ impl EntityInfo {
   pub fn parse_text(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesTextResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -446,9 +473,9 @@ impl EntityInfo {
   pub fn parse_text_sensor(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesTextSensorResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -465,9 +492,9 @@ impl EntityInfo {
   pub fn parse_time(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesTimeResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -481,9 +508,9 @@ impl EntityInfo {
   pub fn parse_update(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesUpdateResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,
@@ -500,9 +527,9 @@ impl EntityInfo {
   pub fn parse_valve(data: &[u8]) -> Result<Self> {
     let data = api::ListEntitiesValveResponse::parse_from_bytes(data)?;
 
-    let entity_info = services::EntityInfo {
+    let entity_info = services::BaseEntityInfo {
       disabled_by_default: data.disabled_by_default,
-      enitity_category: data.entity_category.enum_value_or_default().into(),
+      entity_category: data.entity_category.enum_value_or_default().into(),
       object_id: data.object_id,
       key: data.key,
       name: data.name,

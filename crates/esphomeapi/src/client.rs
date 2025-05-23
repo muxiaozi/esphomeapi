@@ -1,9 +1,9 @@
 use protobuf::Message;
 
 use crate::{
+  connection::Callback,
   model::{
-    parse_user_service, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
-    SUBCRIBE_STATES_RESPONSE_TYPES,
+    parse_user_service, DeviceInfo, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
   },
   utils::Options as _,
 };
@@ -23,7 +23,7 @@ impl Client {
     expected_name: Option<String>,
     psk: Option<String>,
     client_info: Option<String>,
-    keep_alive_duration: Option<Duration>,
+    keep_alive_duration: Option<u32>,
   ) -> Self {
     Self {
       connection: Connection::new(
@@ -42,7 +42,7 @@ impl Client {
     self.connection.connect(login).await
   }
 
-  pub async fn device_info(&mut self) -> Result<proto::api::DeviceInfoResponse> {
+  pub async fn device_info(&self) -> Result<DeviceInfo> {
     let message = proto::api::DeviceInfoRequest::default();
 
     let response = self
@@ -55,7 +55,7 @@ impl Client {
 
     let response = proto::api::DeviceInfoResponse::parse_from_bytes(&response.protobuf_data)?;
 
-    Ok(response)
+    Ok(response.into())
   }
 
   pub async fn list_entities_services(&self) -> Result<(Vec<EntityInfo>, Vec<UserService>)> {
@@ -96,27 +96,19 @@ impl Client {
     Ok((entities, services))
   }
 
+  pub fn add_message_handler(
+    &mut self,
+    msg_type: u32,
+    callback: Callback,
+    remove_after_call: bool,
+  ) {
+    self
+      .connection
+      .add_message_handler(msg_type, callback, remove_after_call);
+  }
+
   pub async fn subscribe_states(&mut self) -> Result<()> {
     let message = proto::api::SubscribeStatesRequest::new();
-
-    let mut state_msg_types = SUBCRIBE_STATES_RESPONSE_TYPES
-      .keys()
-      .cloned()
-      .collect::<Vec<u32>>();
-
-    state_msg_types.push(proto::api::CameraImageResponse::get_option_id());
-
-    for msg_type in state_msg_types {
-      self.connection.add_message_handler(
-        msg_type,
-        Box::new(|_, msg| {
-          println!("Received message: {:?}", msg);
-          Ok(())
-        }),
-        false,
-      );
-    }
-
     self.connection.send_message(Box::new(message)).await?;
     Ok(())
   }
