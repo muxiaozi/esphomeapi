@@ -19,7 +19,7 @@
     "format:rs": "cargo fmt --all"
   },
   "devDependencies": {
-    "@napi-rs/cli": "^3.0.0-alpha.72",
+    "@napi-rs/cli": "^3.0.0-alpha.80",
     "@taplo/cli": "^0.7.0",
     "ava": "^6.2.0",
     "tslib": "^2.7.0",
