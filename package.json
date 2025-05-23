@@ -14,6 +14,7 @@
     "build": "pnpm -r run build",
     "build:debug": "pnpm -r run build:debug",
     "build:ts": "tsc -b tsconfig.json -verbose",
+    "create-npm-dirs": "pnpm -r run create-npm-dirs",
     "lint": "biome lint --fix",
     "test": "ava",
     "format": "run-p format:rs format:toml",

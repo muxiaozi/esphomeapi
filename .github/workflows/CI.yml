@@ -230,9 +230,9 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
         with:
-          path: crates/esphomeapi-manager-node/esphomeapi-manager/artifacts
+          path: crates/esphomeapi-manager-node/artifacts
       - name: create npm dirs
-        run: pnpm napi create-npm-dirs
+        run: pnpm create-npm-dirs
       - name: Move artifacts
         run: pnpm artifacts
       - name: List packages
