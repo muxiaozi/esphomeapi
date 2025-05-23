@@ -1,10 +1,10 @@
 {
-  "name": "@kovapatrik/esphomeapi",
+  "name": "@kovapatrik/esphomeapi-manager",
   "version": "0.1.0",
   "main": "index.js",
   "types": "index.d.ts",
   "napi": {
-    "name": "esphomeapi",
+    "name": "esphomeapi-manager",
     "triples": {}
   },
   "license": "MIT",

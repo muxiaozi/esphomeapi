@@ -22,7 +22,7 @@ Cargo.lock
 # Added by cargo
 #
 # already existing elements were commented out
-/src/bin
+**/src/bin
 
 .vscode
 .zed

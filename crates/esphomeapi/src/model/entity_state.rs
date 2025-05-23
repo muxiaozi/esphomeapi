@@ -28,10 +28,35 @@ pub enum EntityState {
 }
 
 impl EntityState {
+  pub fn key(&self) -> u32 {
+    match self {
+      EntityState::AlarmControlPanel(state) => state.entity_state.key,
+      EntityState::BinarySensor(state) => state.entity_state.key,
+      EntityState::Climate(state) => state.entity_state.key,
+      EntityState::Cover(state) => state.entity_state.key,
+      EntityState::Date(state) => state.entity_state.key,
+      EntityState::DateTime(state) => state.entity_state.key,
+      EntityState::Event(state) => state.entity_state.key,
+      EntityState::Fan(state) => state.entity_state.key,
+      EntityState::Light(state) => state.entity_state.key,
+      EntityState::Lock(state) => state.entity_state.key,
+      EntityState::MediaPlayer(state) => state.entity_state.key,
+      EntityState::Number(state) => state.entity_state.key,
+      EntityState::Select(state) => state.entity_state.key,
+      EntityState::Sensor(state) => state.entity_state.key,
+      EntityState::Switch(state) => state.entity_state.key,
+      EntityState::Text(state) => state.entity_state.key,
+      EntityState::TextSensor(state) => state.entity_state.key,
+      EntityState::Time(state) => state.entity_state.key,
+      EntityState::Update(state) => state.entity_state.key,
+      EntityState::Valve(state) => state.entity_state.key,
+    }
+  }
+
   pub fn parse_alarm_control_panel(data: &[u8]) -> Result<Self> {
     let data = api::AlarmControlPanelStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -46,7 +71,7 @@ impl EntityState {
   pub fn parse_binary_sensor(data: &[u8]) -> Result<Self> {
     let data = api::BinarySensorStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -60,7 +85,7 @@ impl EntityState {
   pub fn parse_climate(data: &[u8]) -> Result<Self> {
     let data = api::ClimateStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -86,7 +111,7 @@ impl EntityState {
   pub fn parse_cover(data: &[u8]) -> Result<Self> {
     let data = api::CoverStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -102,7 +127,7 @@ impl EntityState {
   pub fn parse_date(data: &[u8]) -> Result<Self> {
     let data = api::DateStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -118,7 +143,7 @@ impl EntityState {
   pub fn parse_date_time(data: &[u8]) -> Result<Self> {
     let data = api::DateTimeStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -132,7 +157,7 @@ impl EntityState {
   pub fn parse_event(data: &[u8]) -> Result<Self> {
     let data = api::EventResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -145,7 +170,7 @@ impl EntityState {
   pub fn parse_fan(data: &[u8]) -> Result<Self> {
     let data = api::FanStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -162,7 +187,7 @@ impl EntityState {
   pub fn parse_light(data: &[u8]) -> Result<Self> {
     let data = api::LightStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -186,7 +211,7 @@ impl EntityState {
   pub fn parse_lock(data: &[u8]) -> Result<Self> {
     let data = api::LockStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -199,7 +224,7 @@ impl EntityState {
   pub fn parse_media_player(data: &[u8]) -> Result<Self> {
     let data = api::MediaPlayerStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -214,7 +239,7 @@ impl EntityState {
   pub fn parse_number(data: &[u8]) -> Result<Self> {
     let data = api::NumberStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -228,7 +253,7 @@ impl EntityState {
   pub fn parse_select(data: &[u8]) -> Result<Self> {
     let data = api::SelectStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -242,7 +267,7 @@ impl EntityState {
   pub fn parse_sensor(data: &[u8]) -> Result<Self> {
     let data = api::SensorStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -256,7 +281,7 @@ impl EntityState {
   pub fn parse_switch(data: &[u8]) -> Result<Self> {
     let data = api::SwitchStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -269,7 +294,7 @@ impl EntityState {
   pub fn parse_text(data: &[u8]) -> Result<Self> {
     let data = api::TextStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -283,7 +308,7 @@ impl EntityState {
   pub fn parse_text_sensor(data: &[u8]) -> Result<Self> {
     let data = api::TextSensorStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -297,7 +322,7 @@ impl EntityState {
   pub fn parse_time(data: &[u8]) -> Result<Self> {
     let data = api::TimeStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -313,7 +338,7 @@ impl EntityState {
   pub fn parse_update(data: &[u8]) -> Result<Self> {
     let data = api::UpdateStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 
@@ -334,7 +359,7 @@ impl EntityState {
   pub fn parse_valve(data: &[u8]) -> Result<Self> {
     let data = api::ValveStateResponse::parse_from_bytes(data)?;
 
-    let entity_state = services::EntityState {
+    let entity_state = services::BaseEntityState {
       key: data.key.clone(),
     };
 

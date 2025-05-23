@@ -176,7 +176,7 @@ impl From<proto::api::EntityCategory> for EntityCategory {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EntityInfo {
+pub struct BaseEntityInfo {
   pub object_id: String,
   pub key: u32,
   pub name: String,
@@ -187,21 +187,21 @@ pub struct EntityInfo {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-pub struct EntityState {
+pub struct BaseEntityState {
   pub key: u32,
 }
 
 // ==================== BINARY SENSOR ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinarySensorInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
   pub is_status_binary_sensor: bool,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BinarySensorState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: bool,
   pub missing_state: bool,
 }
@@ -210,7 +210,7 @@ pub struct BinarySensorState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CoverInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub assumed_state: bool,
   pub supports_stop: bool,
   pub supports_position: bool,
@@ -269,7 +269,7 @@ impl From<proto::api::CoverOperation> for CoverOperation {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct CoverState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub legacy_state: LegacyCoverState,
   pub position: f32,
   pub tilt: f32,
@@ -288,21 +288,21 @@ impl CoverState {
 // ==================== EVENT ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct EventInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
   pub event_types: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Event {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub event_type: String,
 }
 
 // ==================== FAN ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FanInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub supports_oscillation: bool,
   pub supports_speed: bool,
   pub supports_direction: bool,
@@ -344,7 +344,7 @@ impl From<proto::api::FanDirection> for FanDirection {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct FanState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub oscillating: bool,
   pub speed: FanSpeed,
   pub speed_level: i32,
@@ -404,7 +404,7 @@ impl Into<u8> for ColorMode {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LightInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub supported_color_modes: Vec<ColorMode>,
   pub min_mireds: f32,
   pub max_mireds: f32,
@@ -472,7 +472,7 @@ impl LightInfo {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct LightState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: bool,
   pub brightness: f32,
   pub color_mode: ColorMode,
@@ -529,7 +529,7 @@ impl From<proto::api::SensorLastResetType> for LastResetType {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SensorInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
   pub unit_of_measurement: String,
   pub accuracy_decimals: i32,
@@ -540,7 +540,7 @@ pub struct SensorInfo {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct SensorState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: f32,
   pub missing_state: bool,
 }
@@ -548,27 +548,27 @@ pub struct SensorState {
 // ==================== SWITCH ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SwitchInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub assumed_state: bool,
   pub device_class: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SwitchState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: bool,
 }
 
 // ==================== TEXT SENSOR ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextSensorInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextSensorState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: String,
   pub missing_state: bool,
 }
@@ -576,12 +576,12 @@ pub struct TextSensorState {
 // ==================== CAMERA ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CameraInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct CameraState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub data: Vec<u8>,
 }
 
@@ -714,7 +714,7 @@ impl From<proto::api::ClimatePreset> for ClimatePreset {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ClimateInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub supports_current_temperature: bool,
   pub supports_two_point_target_temperature: bool,
   pub supported_modes: Vec<ClimateMode>,
@@ -749,7 +749,7 @@ impl ClimateInfo {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ClimateState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub mode: ClimateMode,
   pub action: ClimateAction,
   pub current_temperature: f32,
@@ -799,7 +799,7 @@ impl From<proto::api::NumberMode> for NumberMode {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct NumberInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub min_value: f32,
   pub max_value: f32,
   pub step: f32,
@@ -810,7 +810,7 @@ pub struct NumberInfo {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct NumberState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: f32,
   pub missing_state: bool,
 }
@@ -819,12 +819,12 @@ pub struct NumberState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub missing_state: bool,
   pub year: u32,
   pub month: u32,
@@ -834,12 +834,12 @@ pub struct DateState {
 // ==================== DATETIME TIME ====================
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TimeState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub missing_state: bool,
   pub hour: u32,
   pub minute: u32,
@@ -850,12 +850,12 @@ pub struct TimeState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateTimeInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct DateTimeState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub missing_state: bool,
   pub epoch_seconds: u32,
 }
@@ -864,13 +864,13 @@ pub struct DateTimeState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SelectInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub options: Vec<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SelectState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: String,
   pub missing_state: bool,
 }
@@ -879,7 +879,7 @@ pub struct SelectState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SirenInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub tones: Vec<String>,
   pub supports_volume: bool,
   pub supports_duration: bool,
@@ -887,7 +887,7 @@ pub struct SirenInfo {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct SirenState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: bool,
 }
 
@@ -895,7 +895,7 @@ pub struct SirenState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ButtonInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
 }
 
@@ -943,7 +943,7 @@ impl From<proto::api::LockCommand> for LockCommand {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LockInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub supports_open: bool,
   pub assumed_state: bool,
 
@@ -953,7 +953,7 @@ pub struct LockInfo {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct LockEntityState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: LockState,
 }
 
@@ -961,7 +961,7 @@ pub struct LockEntityState {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ValveInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
   pub assumed_state: bool,
   pub supports_stop: bool,
@@ -987,7 +987,7 @@ impl From<proto::api::ValveOperation> for ValveOperation {
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct ValveState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub position: f32,
   pub current_operation: ValveOperation,
 }
@@ -1076,14 +1076,14 @@ impl From<proto::api::MediaPlayerSupportedFormat> for MediaPlayerSupportedFormat
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct MediaPlayerInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub supports_pause: bool,
   pub supported_formats: Vec<MediaPlayerSupportedFormat>,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct MediaPlayerEntityState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: MediaPlayerState,
   pub volume: f32,
   pub muted: bool,
@@ -1177,7 +1177,7 @@ impl From<proto::api::AlarmControlPanelStateCommand> for AlarmControlPanelComman
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AlarmControlPanelInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub supported_features: u32,
   pub requires_code: bool,
   pub requires_code_to_arm: bool,
@@ -1185,7 +1185,7 @@ pub struct AlarmControlPanelInfo {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct AlarmControlPanelEntityState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: AlarmControlPanelState,
 }
 
@@ -1207,7 +1207,7 @@ impl From<proto::api::TextMode> for TextMode {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub min_length: u32,
   pub max_length: u32,
   pub pattern: String,
@@ -1216,7 +1216,7 @@ pub struct TextInfo {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct TextState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub state: String,
   pub missing_state: bool,
 }
@@ -1231,13 +1231,13 @@ pub enum UpdateCommand {
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct UpdateInfo {
-  pub entity_info: EntityInfo,
+  pub entity_info: BaseEntityInfo,
   pub device_class: String,
 }
 
 #[derive(Debug, Clone, PartialEq)]
 pub struct UpdateState {
-  pub entity_state: EntityState,
+  pub entity_state: BaseEntityState,
   pub missing_state: bool,
   pub in_progress: bool,
   pub has_progress: bool,

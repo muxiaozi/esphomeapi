@@ -7,7 +7,7 @@ use std::{
 };
 
 use bytes::Bytes;
-use codec::{Callback, EspHomeCodec, EspHomeMessage, Noise, Plain};
+use codec::{EspHomeCodec, EspHomeMessage, Noise, Plain};
 use futures::SinkExt as _;
 use protobuf::Message as _;
 use tokio::{
@@ -27,7 +27,7 @@ use crate::{proto, Error, Result};
 use self::codec::FrameCodec;
 
 use crate::utils::Options as _;
-pub use codec::ProtobufMessage;
+pub use codec::{Callback, ProtobufMessage};
 
 #[derive(Clone, Debug)]
 enum ConnectionState {

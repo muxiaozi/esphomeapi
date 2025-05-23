@@ -69,24 +69,24 @@ function requireNative() {
   } else if (process.platform === 'android') {
     if (process.arch === 'arm64') {
       try {
-        return require('./esphomeapi.android-arm64.node')
+        return require('./esphomeapi-manager.android-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-android-arm64')
+        return require('@kovapatrik/esphomeapi-manager-android-arm64')
       } catch (e) {
         loadErrors.push(e)
       }
 
     } else if (process.arch === 'arm') {
       try {
-        return require('./esphomeapi.android-arm-eabi.node')
+        return require('./esphomeapi-manager.android-arm-eabi.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-android-arm-eabi')
+        return require('@kovapatrik/esphomeapi-manager-android-arm-eabi')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -97,36 +97,36 @@ function requireNative() {
   } else if (process.platform === 'win32') {
     if (process.arch === 'x64') {
       try {
-        return require('./esphomeapi.win32-x64-msvc.node')
+        return require('./esphomeapi-manager.win32-x64-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-win32-x64-msvc')
+        return require('@kovapatrik/esphomeapi-manager-win32-x64-msvc')
       } catch (e) {
         loadErrors.push(e)
       }
 
     } else if (process.arch === 'ia32') {
       try {
-        return require('./esphomeapi.win32-ia32-msvc.node')
+        return require('./esphomeapi-manager.win32-ia32-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-win32-ia32-msvc')
+        return require('@kovapatrik/esphomeapi-manager-win32-ia32-msvc')
       } catch (e) {
         loadErrors.push(e)
       }
 
     } else if (process.arch === 'arm64') {
       try {
-        return require('./esphomeapi.win32-arm64-msvc.node')
+        return require('./esphomeapi-manager.win32-arm64-msvc.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-win32-arm64-msvc')
+        return require('@kovapatrik/esphomeapi-manager-win32-arm64-msvc')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -136,36 +136,36 @@ function requireNative() {
     }
   } else if (process.platform === 'darwin') {
     try {
-        return require('./esphomeapi.darwin-universal.node')
+        return require('./esphomeapi-manager.darwin-universal.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-darwin-universal')
+        return require('@kovapatrik/esphomeapi-manager-darwin-universal')
       } catch (e) {
         loadErrors.push(e)
       }
 
     if (process.arch === 'x64') {
       try {
-        return require('./esphomeapi.darwin-x64.node')
+        return require('./esphomeapi-manager.darwin-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-darwin-x64')
+        return require('@kovapatrik/esphomeapi-manager-darwin-x64')
       } catch (e) {
         loadErrors.push(e)
       }
 
     } else if (process.arch === 'arm64') {
       try {
-        return require('./esphomeapi.darwin-arm64.node')
+        return require('./esphomeapi-manager.darwin-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-darwin-arm64')
+        return require('@kovapatrik/esphomeapi-manager-darwin-arm64')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -176,24 +176,24 @@ function requireNative() {
   } else if (process.platform === 'freebsd') {
     if (process.arch === 'x64') {
       try {
-        return require('./esphomeapi.freebsd-x64.node')
+        return require('./esphomeapi-manager.freebsd-x64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-freebsd-x64')
+        return require('@kovapatrik/esphomeapi-manager-freebsd-x64')
       } catch (e) {
         loadErrors.push(e)
       }
 
     } else if (process.arch === 'arm64') {
       try {
-        return require('./esphomeapi.freebsd-arm64.node')
+        return require('./esphomeapi-manager.freebsd-arm64.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-freebsd-arm64')
+        return require('@kovapatrik/esphomeapi-manager-freebsd-arm64')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -205,24 +205,24 @@ function requireNative() {
     if (process.arch === 'x64') {
       if (isMusl()) {
         try {
-        return require('./esphomeapi.linux-x64-musl.node')
+        return require('./esphomeapi-manager.linux-x64-musl.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-x64-musl')
+        return require('@kovapatrik/esphomeapi-manager-linux-x64-musl')
       } catch (e) {
         loadErrors.push(e)
       }
 
       } else {
         try {
-        return require('./esphomeapi.linux-x64-gnu.node')
+        return require('./esphomeapi-manager.linux-x64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-x64-gnu')
+        return require('@kovapatrik/esphomeapi-manager-linux-x64-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -231,24 +231,24 @@ function requireNative() {
     } else if (process.arch === 'arm64') {
       if (isMusl()) {
         try {
-        return require('./esphomeapi.linux-arm64-musl.node')
+        return require('./esphomeapi-manager.linux-arm64-musl.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-arm64-musl')
+        return require('@kovapatrik/esphomeapi-manager-linux-arm64-musl')
       } catch (e) {
         loadErrors.push(e)
       }
 
       } else {
         try {
-        return require('./esphomeapi.linux-arm64-gnu.node')
+        return require('./esphomeapi-manager.linux-arm64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-arm64-gnu')
+        return require('@kovapatrik/esphomeapi-manager-linux-arm64-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -257,24 +257,24 @@ function requireNative() {
     } else if (process.arch === 'arm') {
       if (isMusl()) {
         try {
-        return require('./esphomeapi.linux-arm-musleabihf.node')
+        return require('./esphomeapi-manager.linux-arm-musleabihf.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-arm-musleabihf')
+        return require('@kovapatrik/esphomeapi-manager-linux-arm-musleabihf')
       } catch (e) {
         loadErrors.push(e)
       }
 
       } else {
         try {
-        return require('./esphomeapi.linux-arm-gnueabihf.node')
+        return require('./esphomeapi-manager.linux-arm-gnueabihf.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-arm-gnueabihf')
+        return require('@kovapatrik/esphomeapi-manager-linux-arm-gnueabihf')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -283,24 +283,24 @@ function requireNative() {
     } else if (process.arch === 'riscv64') {
       if (isMusl()) {
         try {
-        return require('./esphomeapi.linux-riscv64-musl.node')
+        return require('./esphomeapi-manager.linux-riscv64-musl.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-riscv64-musl')
+        return require('@kovapatrik/esphomeapi-manager-linux-riscv64-musl')
       } catch (e) {
         loadErrors.push(e)
       }
 
       } else {
         try {
-        return require('./esphomeapi.linux-riscv64-gnu.node')
+        return require('./esphomeapi-manager.linux-riscv64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-riscv64-gnu')
+        return require('@kovapatrik/esphomeapi-manager-linux-riscv64-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -308,24 +308,24 @@ function requireNative() {
       }
     } else if (process.arch === 'ppc64') {
       try {
-        return require('./esphomeapi.linux-ppc64-gnu.node')
+        return require('./esphomeapi-manager.linux-ppc64-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-ppc64-gnu')
+        return require('@kovapatrik/esphomeapi-manager-linux-ppc64-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
 
     } else if (process.arch === 's390x') {
       try {
-        return require('./esphomeapi.linux-s390x-gnu.node')
+        return require('./esphomeapi-manager.linux-s390x-gnu.node')
       } catch (e) {
         loadErrors.push(e)
       }
       try {
-        return require('@kovapatrik/esphomeapi-linux-s390x-gnu')
+        return require('@kovapatrik/esphomeapi-manager-linux-s390x-gnu')
       } catch (e) {
         loadErrors.push(e)
       }
@@ -342,7 +342,7 @@ nativeBinding = requireNative()
 
 if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
   try {
-    nativeBinding = require('./esphomeapi.wasi.cjs')
+    nativeBinding = require('./esphomeapi-manager.wasi.cjs')
   } catch (err) {
     if (process.env.NAPI_RS_FORCE_WASI) {
       loadErrors.push(err)
@@ -350,7 +350,7 @@ if (!nativeBinding || process.env.NAPI_RS_FORCE_WASI) {
   }
   if (!nativeBinding) {
     try {
-      nativeBinding = require('@kovapatrik/esphomeapi-wasm32-wasi')
+      nativeBinding = require('@kovapatrik/esphomeapi-manager-wasm32-wasi')
     } catch (err) {
       if (process.env.NAPI_RS_FORCE_WASI) {
         loadErrors.push(err)
@@ -370,5 +370,5 @@ if (!nativeBinding) {
   throw new Error(`Failed to load native binding`)
 }
 
-module.exports.Client = nativeBinding.Client
-module.exports.DeviceInfo = nativeBinding.DeviceInfo
+module.exports.Manager = nativeBinding.Manager
+module.exports.Switch = nativeBinding.Switch

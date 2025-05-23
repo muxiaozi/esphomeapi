@@ -1,5 +1,5 @@
 [package]
-name = "esphomeapi-node"
+name = "esphomeapi-manager-node"
 version = "0.1.0"
 edition = "2021"
 
@@ -7,7 +7,7 @@ edition = "2021"
 crate-type = ["cdylib"]
 
 [dependencies]
-esphomeapi = { path = "../esphomeapi" }
+esphomeapi-manager = { path = "../esphomeapi-manager" }
 napi = { version = "3.0.0-alpha", features = ["tokio_rt"] }
 napi-derive = "3.0.0-alpha"
 

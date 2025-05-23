@@ -1,9 +1,9 @@
 use protobuf::Message;
 
 use crate::{
+  connection::Callback,
   model::{
     parse_user_service, DeviceInfo, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
-    SUBCRIBE_STATES_RESPONSE_TYPES,
   },
   utils::Options as _,
 };
@@ -96,27 +96,19 @@ impl Client {
     Ok((entities, services))
   }
 
+  pub fn add_message_handler(
+    &mut self,
+    msg_type: u32,
+    callback: Callback,
+    remove_after_call: bool,
+  ) {
+    self
+      .connection
+      .add_message_handler(msg_type, callback, remove_after_call);
+  }
+
   pub async fn subscribe_states(&mut self) -> Result<()> {
     let message = proto::api::SubscribeStatesRequest::new();
-
-    let mut state_msg_types = SUBCRIBE_STATES_RESPONSE_TYPES
-      .keys()
-      .cloned()
-      .collect::<Vec<u32>>();
-
-    state_msg_types.push(proto::api::CameraImageResponse::get_option_id());
-
-    for msg_type in state_msg_types {
-      self.connection.add_message_handler(
-        msg_type,
-        Box::new(|_, msg| {
-          println!("Received message: {:?}", msg);
-          Ok(())
-        }),
-        false,
-      );
-    }
-
     self.connection.send_message(Box::new(message)).await?;
     Ok(())
   }
