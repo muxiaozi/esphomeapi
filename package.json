@@ -14,11 +14,13 @@
     "build": "pnpm -r run build",
     "build:debug": "pnpm -r run build:debug",
     "build:ts": "tsc -b tsconfig.json -verbose",
+    "lint": "biome lint --fix",
     "test": "ava",
     "format": "run-p format:rs format:toml",
     "format:rs": "cargo fmt --all"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@napi-rs/cli": "^3.0.0-alpha.80",
     "@taplo/cli": "^0.7.0",
     "ava": "^6.2.0",
