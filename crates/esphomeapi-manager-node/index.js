@@ -377,3 +377,4 @@ if (!nativeBinding) {
 module.exports = nativeBinding
 module.exports.Manager = nativeBinding.Manager
 module.exports.Switch = nativeBinding.Switch
+module.exports.discover = nativeBinding.discover

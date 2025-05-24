@@ -26,6 +26,8 @@ export interface ConnectionOptions {
   keepAliveDuration?: number
 }
 
+export declare function discover(seconds: number): Promise<Array<ServiceInfo>>
+
 export interface EntityInfo {
   key: number
   name: string
@@ -35,4 +37,17 @@ export interface EntityInfo {
   disabledByDefault: boolean
   entityCategory: string
   icon: string
+}
+
+export interface ServiceInfo {
+  tyDomain: string
+  subDomain?: string
+  fullname: string
+  server: string
+  addresses: Array<string>
+  port: number
+  hostTtl: number
+  otherTtl: number
+  priority: number
+  weight: number
 }

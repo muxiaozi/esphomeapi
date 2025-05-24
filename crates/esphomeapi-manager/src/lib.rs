@@ -11,6 +11,8 @@ use esphomeapi::{
   model::{DeviceInfo, EntityInfo, EntityState, SUBCRIBE_STATES_RESPONSE_TYPES, UserService},
 };
 
+pub use esphomeapi::discovery::{ServiceInfo, discover};
+
 pub struct Manager {
   pub device_info: DeviceInfo,
   switches: HashMap<u32, entity::Switch>,

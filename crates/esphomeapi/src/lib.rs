@@ -6,6 +6,7 @@ pub use proto::api;
 
 mod client;
 mod connection;
+pub mod discovery;
 pub mod model;
 mod utils;
 
