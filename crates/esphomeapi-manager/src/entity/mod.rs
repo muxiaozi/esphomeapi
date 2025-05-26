@@ -23,7 +23,13 @@ impl fmt::Display for StateError {
 
 impl std::error::Error for StateError {}
 
-pub trait Entity {
+#[derive(Clone)]
+pub enum Entity {
+  Switch(Switch),
+  Sensor(),
+}
+
+pub trait BaseEntity {
   fn key(&self) -> u32;
   fn name(&self) -> String;
 }

@@ -4,16 +4,18 @@ export declare class Manager {
   static connect(options: ConnectionOptions): Promise<Manager>
   getDeviceName(): string
   getDeviceMac(): string
-  getSwitches(): Array<Switch>
+  getEntities(): Array<Entity>
+  getSwitch(key: number): Switch
 }
 
 export declare class Switch {
   get key(): number
   get name(): string
-  isOn(): boolean
+  get isOn(): boolean
   turnOn(): Promise<void>
   turnOff(): Promise<void>
   toggle(): Promise<void>
+  setState(state: boolean): Promise<void>
 }
 
 export interface ConnectionOptions {
@@ -27,6 +29,10 @@ export interface ConnectionOptions {
 }
 
 export declare function discover(seconds: number): Promise<Array<ServiceInfo>>
+
+export type Entity =
+  | { type: 'Switch', field0: number }
+  | { type: 'Sensor', field0: number }
 
 export interface EntityInfo {
   key: number

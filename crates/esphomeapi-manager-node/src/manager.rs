@@ -1,7 +1,6 @@
-use esphomeapi_manager::Manager as RustManager;
+use esphomeapi_manager::{entity::BaseEntity, Manager as RustManager};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use std::collections::HashMap;
 
 use crate::entity::{self, Switch};
 
@@ -62,12 +61,36 @@ impl Manager {
   }
 
   #[napi]
-  pub fn get_switches(&self) -> Vec<entity::Switch> {
+  pub fn get_entities(&self) -> Vec<entity::Entity> {
     self
       .inner
-      .get_switches()
-      .iter()
-      .map(|s| Switch::new(s.clone().into()))
+      .get_entities()
+      .into_iter()
+      .map(|(_, e)| match e {
+        esphomeapi_manager::entity::Entity::Switch(switch) => entity::Entity::Switch(switch.key()),
+        esphomeapi_manager::entity::Entity::Sensor() => entity::Entity::Sensor(0),
+      })
       .collect()
+  }
+
+  #[napi]
+  pub fn get_switch(&self, key: u32) -> Result<entity::Switch> {
+    let entities = self.inner.get_entities();
+    let entity = entities.get(&key).ok_or_else(|| {
+      Error::new(
+        Status::GenericFailure,
+        format!("Entity with id {} not found.", key),
+      )
+    })?;
+
+    let entity = entity.clone();
+
+    match entity {
+      esphomeapi_manager::entity::Entity::Switch(switch) => Ok(Switch::new(switch)),
+      _ => Err(Error::new(
+        Status::GenericFailure,
+        format!("Entity with id {} is not a switch.", key),
+      )),
+    }
   }
 }

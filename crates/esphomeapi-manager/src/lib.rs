@@ -5,7 +5,7 @@ use std::{
 
 pub mod entity;
 
-use entity::Switch;
+use entity::Entity;
 use esphomeapi::{
   Client, Options as _, api,
   model::{DeviceInfo, EntityInfo, EntityState, SUBCRIBE_STATES_RESPONSE_TYPES, UserService},
@@ -15,7 +15,7 @@ pub use esphomeapi::discovery::{ServiceInfo, discover};
 
 pub struct Manager {
   pub device_info: DeviceInfo,
-  switches: HashMap<u32, entity::Switch>,
+  entities: HashMap<u32, Entity>,
   states: Arc<RwLock<HashMap<u32, EntityState>>>,
   services: HashMap<u32, UserService>,
 }
@@ -74,7 +74,7 @@ impl Manager {
 
     client.subscribe_states().await.unwrap();
 
-    let mut switches = HashMap::new();
+    let mut entities = HashMap::new();
 
     let client = Arc::new(client);
 
@@ -82,7 +82,7 @@ impl Manager {
       match entity {
         EntityInfo::Switch(info) => {
           let entity = entity::Switch::new(client.clone(), info.clone(), states.clone());
-          switches.insert(info.entity_info.key, entity);
+          entities.insert(info.entity_info.key, Entity::Switch(entity));
         }
         _ => {}
       }
@@ -96,13 +96,13 @@ impl Manager {
 
     Self {
       device_info,
-      switches,
+      entities,
       services,
       states,
     }
   }
 
-  pub fn get_switches(&self) -> Vec<Switch> {
-    self.switches.values().cloned().collect()
+  pub fn get_entities(&self) -> HashMap<u32, Entity> {
+    self.entities.clone()
   }
 }

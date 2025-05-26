@@ -8,7 +8,7 @@ use esphomeapi::{
   model::{EntityState, SwitchInfo, SwitchState},
 };
 
-use super::{Entity, StateError, StateResult};
+use super::{BaseEntity, StateError, StateResult};
 
 #[derive(Clone)]
 pub struct Switch {
@@ -64,9 +64,16 @@ impl Switch {
       false => self.turn_on().await,
     }
   }
+
+  pub async fn set_state(&self, state: bool) -> esphomeapi::Result<()> {
+    match state {
+      true => self.turn_on().await,
+      false => self.turn_off().await,
+    }
+  }
 }
 
-impl Entity for Switch {
+impl BaseEntity for Switch {
   fn key(&self) -> u32 {
     self.info.entity_info.key
   }

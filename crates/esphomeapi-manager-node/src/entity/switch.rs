@@ -1,17 +1,14 @@
-use esphomeapi_manager::entity::{Entity as _, Switch as RustSwitch};
+use esphomeapi_manager::entity::{BaseEntity as _, Switch as RustSwitch};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
-use std::sync::Arc;
-
-// use super::super::{EntityInfo, SimpleState};
 
 #[napi]
 pub struct Switch {
-  inner: Arc<RustSwitch>,
+  inner: RustSwitch,
 }
 
 impl Switch {
-  pub fn new(rust_switch: Arc<RustSwitch>) -> Self {
+  pub fn new(rust_switch: RustSwitch) -> Self {
     Switch { inner: rust_switch }
   }
 }
@@ -28,7 +25,7 @@ impl Switch {
     self.inner.name().to_string()
   }
 
-  #[napi]
+  #[napi(getter)]
   pub fn is_on(&self) -> Result<bool> {
     match self.inner.get_state() {
       Ok(state) => Ok(state.state),
@@ -56,9 +53,19 @@ impl Switch {
 
   #[napi]
   pub async fn toggle(&self) -> Result<()> {
-    match self.is_on()? {
-      true => self.turn_off().await,
-      false => self.turn_on().await,
-    }
+    self
+      .inner
+      .toggle()
+      .await
+      .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
+  }
+
+  #[napi]
+  pub async fn set_state(&self, state: bool) -> Result<()> {
+    self
+      .inner
+      .set_state(state)
+      .await
+      .map_err(|e| Error::new(Status::GenericFailure, e.to_string()))
   }
 }
