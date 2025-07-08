@@ -5,39 +5,39 @@ use std::{
 
 use esphomeapi::{
   Client,
-  model::{EntityState, SwitchInfo, SwitchState},
+  model::{EntityState, LightInfo, LightState},
 };
 
 use super::{BaseEntity, StateError, StateResult};
 
 #[derive(Clone)]
-pub struct Switch {
+pub struct Light {
   client: Arc<Client>,
-  info: SwitchInfo,
+  info: LightInfo,
   states: Arc<RwLock<HashMap<u32, EntityState>>>,
 }
 
-impl Switch {
+impl Light {
   pub fn new(
     client: Arc<Client>,
-    info: SwitchInfo,
+    info: LightInfo,
     states: Arc<RwLock<HashMap<u32, EntityState>>>,
   ) -> Self {
-    Switch {
+    Light {
       client,
       info,
       states,
     }
   }
 
-  pub fn get_state(&self) -> StateResult<SwitchState> {
+  pub fn get_state(&self) -> StateResult<LightState> {
     let states_guard = self.states.read().unwrap();
     let state = states_guard
       .get(&self.info.entity_info.key)
       .ok_or(StateError::EntityKeyNotFound(self.info.entity_info.key));
 
     match state? {
-      EntityState::Switch(state) => Ok(state.clone()),
+      EntityState::Light(state) => Ok(state.clone()),
       _ => Err(StateError::NotValidState),
     }
   }
@@ -51,14 +51,42 @@ impl Switch {
   pub async fn turn_on(&self) -> esphomeapi::Result<()> {
     self
       .client
-      .switch_command(self.info.entity_info.key, true)
+      .light_command(
+        self.info.entity_info.key,
+        Some(true),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+      )
       .await
   }
 
   pub async fn turn_off(&self) -> esphomeapi::Result<()> {
     self
       .client
-      .switch_command(self.info.entity_info.key, false)
+      .light_command(
+        self.info.entity_info.key,
+        Some(false),
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+        None,
+      )
       .await
   }
 
@@ -69,15 +97,14 @@ impl Switch {
     }
   }
 
-  pub async fn set_state(&self, state: bool) -> esphomeapi::Result<()> {
-    match state {
-      true => self.turn_on().await,
-      false => self.turn_off().await,
-    }
+  pub fn brightness(&self) -> esphomeapi::Result<f32> {
+    let state = self.get_state()?;
+
+    Ok(state.brightness)
   }
 }
 
-impl BaseEntity for Switch {
+impl BaseEntity for Light {
   fn key(&self) -> u32 {
     self.info.entity_info.key
   }

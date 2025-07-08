@@ -365,8 +365,9 @@ pub enum LightColorCapability {
   RGB = 1 << 5,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Copy)]
+#[derive(Debug, Clone, PartialEq, Eq, Copy, Default)]
 pub enum ColorMode {
+  #[default]
   Unknown = 0,
   OnOff = 1,
   Brightness = 2,
@@ -392,6 +393,23 @@ impl From<proto::api::ColorMode> for ColorMode {
       proto::api::ColorMode::COLOR_MODE_RGB_WHITE => ColorMode::RGBWhite,
       proto::api::ColorMode::COLOR_MODE_RGB_COLOR_TEMPERATURE => ColorMode::RGBColorTemperature,
       proto::api::ColorMode::COLOR_MODE_RGB_COLD_WARM_WHITE => ColorMode::RGBColdWarmWhite,
+    }
+  }
+}
+
+impl Into<proto::api::ColorMode> for ColorMode {
+  fn into(self) -> proto::api::ColorMode {
+    match self {
+      ColorMode::Unknown => proto::api::ColorMode::COLOR_MODE_UNKNOWN,
+      ColorMode::OnOff => proto::api::ColorMode::COLOR_MODE_ON_OFF,
+      ColorMode::Brightness => proto::api::ColorMode::COLOR_MODE_BRIGHTNESS,
+      ColorMode::White => proto::api::ColorMode::COLOR_MODE_WHITE,
+      ColorMode::ColorTemperature => proto::api::ColorMode::COLOR_MODE_COLOR_TEMPERATURE,
+      ColorMode::ColdWarmWhite => proto::api::ColorMode::COLOR_MODE_COLD_WARM_WHITE,
+      ColorMode::RGB => proto::api::ColorMode::COLOR_MODE_RGB,
+      ColorMode::RGBWhite => proto::api::ColorMode::COLOR_MODE_RGB_WHITE,
+      ColorMode::RGBColorTemperature => proto::api::ColorMode::COLOR_MODE_RGB_COLOR_TEMPERATURE,
+      ColorMode::RGBColdWarmWhite => proto::api::ColorMode::COLOR_MODE_RGB_COLD_WARM_WHITE,
     }
   }
 }

@@ -2,7 +2,7 @@ use esphomeapi_manager::{entity::BaseEntity, Manager as RustManager};
 use napi::bindgen_prelude::*;
 use napi_derive::napi;
 
-use crate::entity::{self, Switch};
+use crate::entity::{self};
 
 #[napi(object)]
 pub struct ConnectionOptions {
@@ -67,6 +67,7 @@ impl Manager {
       .get_entities()
       .into_iter()
       .map(|(_, e)| match e {
+        esphomeapi_manager::entity::Entity::Light(light) => entity::Entity::Light(light.key()),
         esphomeapi_manager::entity::Entity::Switch(switch) => entity::Entity::Switch(switch.key()),
         esphomeapi_manager::entity::Entity::Sensor() => entity::Entity::Sensor(0),
       })
@@ -86,10 +87,31 @@ impl Manager {
     let entity = entity.clone();
 
     match entity {
-      esphomeapi_manager::entity::Entity::Switch(switch) => Ok(Switch::new(switch)),
+      esphomeapi_manager::entity::Entity::Switch(switch) => Ok(entity::Switch::new(switch)),
       _ => Err(Error::new(
         Status::GenericFailure,
         format!("Entity with id {} is not a switch.", key),
+      )),
+    }
+  }
+
+  #[napi]
+  pub fn get_light(&self, key: u32) -> Result<entity::Light> {
+    let entities = self.inner.get_entities();
+    let entity = entities.get(&key).ok_or_else(|| {
+      Error::new(
+        Status::GenericFailure,
+        format!("Entity with id {} not found.", key),
+      )
+    })?;
+
+    let entity = entity.clone();
+
+    match entity {
+      esphomeapi_manager::entity::Entity::Light(light) => Ok(entity::Light::new(light)),
+      _ => Err(Error::new(
+        Status::GenericFailure,
+        format!("Entity with id {} is not a light.", key),
       )),
     }
   }

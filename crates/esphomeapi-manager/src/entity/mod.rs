@@ -1,7 +1,9 @@
+mod light;
 mod switch;
 
 use std::fmt;
 
+pub use light::Light;
 pub use switch::Switch;
 
 type StateResult<T> = std::result::Result<T, StateError>;
@@ -26,6 +28,7 @@ impl std::error::Error for StateError {}
 #[derive(Clone)]
 pub enum Entity {
   Switch(Switch),
+  Light(Light),
   Sensor(),
 }
 

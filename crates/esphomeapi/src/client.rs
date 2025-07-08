@@ -1,9 +1,10 @@
-use protobuf::Message;
+use protobuf::{EnumOrUnknown, Message};
 
 use crate::{
   connection::Callback,
   model::{
-    parse_user_service, DeviceInfo, EntityInfo, UserService, LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
+    parse_user_service, ColorMode, DeviceInfo, EntityInfo, UserService,
+    LIST_ENTITIES_SERVICES_RESPONSE_TYPES,
   },
   utils::Options as _,
 };
@@ -117,6 +118,57 @@ impl Client {
     let message = proto::api::SwitchCommandRequest {
       key,
       state,
+      ..Default::default()
+    };
+
+    self.connection.send_message(Box::new(message)).await?;
+    Ok(())
+  }
+
+  pub async fn light_command(
+    &self,
+    key: u32,
+    state: Option<bool>,
+    brightness: Option<f32>,
+    color_mode: Option<ColorMode>,
+    color_brightness: Option<f32>,
+    rgb: Option<(f32, f32, f32)>,
+    white: Option<f32>,
+    color_temperature: Option<f32>,
+    cold_white: Option<f32>,
+    warm_white: Option<f32>,
+    transition_length: Option<f32>,
+    flash_length: Option<f32>,
+    effect: Option<String>,
+  ) -> Result<()> {
+    let message = proto::api::LightCommandRequest {
+      key,
+      has_state: state.is_some(),
+      state: state.unwrap_or_default(),
+      has_brightness: brightness.is_some(),
+      brightness: brightness.unwrap_or_default(),
+      has_color_mode: color_mode.is_some(),
+      color_mode: EnumOrUnknown::new(color_mode.unwrap_or_default().into()),
+      has_color_brightness: color_brightness.is_some(),
+      color_brightness: color_brightness.unwrap_or_default(),
+      has_rgb: rgb.is_some(),
+      red: rgb.unwrap_or_default().0,
+      green: rgb.unwrap_or_default().1,
+      blue: rgb.unwrap_or_default().2,
+      has_white: white.is_some(),
+      white: white.unwrap_or_default(),
+      has_color_temperature: color_temperature.is_some(),
+      color_temperature: color_temperature.unwrap_or_default(),
+      has_cold_white: cold_white.is_some(),
+      cold_white: cold_white.unwrap_or_default(),
+      has_warm_white: warm_white.is_some(),
+      warm_white: warm_white.unwrap_or_default(),
+      has_transition_length: transition_length.is_some(),
+      transition_length: (transition_length.unwrap_or_default() * 1000.0).round() as u32,
+      has_flash_length: flash_length.is_some(),
+      flash_length: (flash_length.unwrap_or_default() * 1000.0).round() as u32,
+      has_effect: effect.is_some(),
+      effect: effect.unwrap_or_default(),
       ..Default::default()
     };
 
