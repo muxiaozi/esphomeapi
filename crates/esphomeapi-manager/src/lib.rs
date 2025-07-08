@@ -80,6 +80,10 @@ impl Manager {
 
     for entity in entities_response {
       match entity {
+        EntityInfo::Light(info) => {
+          let entity = entity::Light::new(client.clone(), info.clone(), states.clone());
+          entities.insert(info.entity_info.key, Entity::Light(entity));
+        }
         EntityInfo::Switch(info) => {
           let entity = entity::Switch::new(client.clone(), info.clone(), states.clone());
           entities.insert(info.entity_info.key, Entity::Switch(entity));
