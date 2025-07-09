@@ -81,14 +81,13 @@ impl Client {
     let mut entities = Vec::new();
     let mut services = Vec::new();
     for message in response {
-      let parser = entity_service_map
-        .get(&message.protobuf_type)
-        .ok_or_else(|| format!("Unknown message type: {}", message.protobuf_type))?;
-
       if message.protobuf_type == proto::api::ListEntitiesServicesResponse::get_option_id() {
         let parsed_service = parse_user_service(&message.protobuf_data)?;
         services.push(parsed_service);
       } else {
+        let parser = entity_service_map
+          .get(&message.protobuf_type)
+          .ok_or_else(|| format!("Unknown message type: {}", message.protobuf_type))?;
         let parsed_message = parser(&message.protobuf_data)?;
         entities.push(parsed_message);
       }
